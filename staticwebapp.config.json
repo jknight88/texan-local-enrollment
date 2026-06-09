@@ -1,17 +1,28 @@
 {
   "routes": [
-    { "route": "/api/*", "allowedRoles": ["anonymous"] },
-    { "route": "/dashboard", "rewrite": "/dashboard/index.html" },
-    { "route": "/sign", "rewrite": "/public/sign.html" },
-    { "route": "/", "rewrite": "/public/index.html" }
+    {
+      "route": "/dashboard",
+      "rewrite": "/dashboard/index.html"
+    },
+    {
+      "route": "/sign",
+      "rewrite": "/sign.html"
+    },
+    {
+      "route": "/",
+      "rewrite": "/index.html"
+    }
   ],
   "navigationFallback": {
-    "rewrite": "/public/index.html",
-    "exclude": ["/api/*", "/dashboard/*", "*.css", "*.js", "*.png"]
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "*.css", "*.js", "*.png", "*.jpg", "*.ico"]
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "mimeTypes": {
+    ".json": "application/json"
   }
 }
