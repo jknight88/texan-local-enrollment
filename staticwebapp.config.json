@@ -9,8 +9,17 @@
       "rewrite": "/sign.html"
     }
   ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN"
+  },
+  "platform": {
+    "apiRuntime": "node:22"
   }
 }
