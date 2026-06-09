@@ -5,24 +5,17 @@
       "rewrite": "/dashboard/index.html"
     },
     {
-      "route": "/sign",
+      "route": "/sign*",
       "rewrite": "/sign.html"
-    },
-    {
-      "route": "/",
-      "rewrite": "/index.html"
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "*.css", "*.js", "*.png", "*.jpg", "*.ico"]
+    "exclude": ["/api/*", "*.css", "*.js", "*.png", "*.jpg", "*.ico", "*.json"]
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "strict-origin-when-cross-origin"
-  },
-  "mimeTypes": {
-    ".json": "application/json"
   }
 }
