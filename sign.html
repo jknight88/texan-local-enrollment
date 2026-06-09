@@ -1651,7 +1651,8 @@ var _origTab=switchTab;
 switchTab=function(t){_origTab(t);refreshPayFields();};
 
 function refreshPayFields(){
-  var ccOn=document.getElementById('pp-cc').classList.contains('on');
+  var ppcc=document.getElementById('pp-cc');
+  var ccOn=ppcc?ppcc.classList.contains('on'):true;
   Object.keys(SIGN_FIELDS).forEach(function(k){if(k.indexOf('pay-')===0)delete SIGN_FIELDS[k];});
   var active  =ccOn?['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-czip']:['f-rout','f-acct','f-aname','f-atype'];
   var inactive=ccOn?['f-rout','f-acct','f-aname','f-atype']:['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-czip'];
