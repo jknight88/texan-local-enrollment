@@ -126,6 +126,8 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
 .btno:hover{background:#edf0f7;}
 .btnsign{background:var(--rd);color:#fff;}
 .btnsign:hover{background:#a00b34;}
+.btninperson{background:#555;color:#fff;}
+.btninperson:hover{background:#333;}
 .estat{font-size:11px;color:var(--bl);font-style:italic;margin-left:5px;}
 
 /* FOOTER */
@@ -1023,10 +1025,12 @@ function collectRepFormData() {
     zip:      document.getElementById('f-zip').value.trim(),
     phone:    document.getElementById('f-phone').value.trim(),
     term:     term ? term.value + ' months' : '',
-    subtotal:   document.getElementById('d-sub').textContent,
-    addons:     document.getElementById('d-addons').textContent,
-    firstMonth: document.getElementById('d-first').textContent,
-    monthly:    document.getElementById('d-monthly').textContent,
+    subtotal:     document.getElementById('d-sub').textContent,
+    addons:       document.getElementById('d-addons').textContent,
+    addonDetail:  document.getElementById('addon-detail') ? document.getElementById('addon-detail').textContent : '',
+    addonsVisible: document.getElementById('row-addons') ? document.getElementById('row-addons').style.display !== 'none' : false,
+    firstMonth:   document.getElementById('d-first').textContent,
+    monthly:      document.getElementById('d-monthly').textContent,
     zones:      zones,
     notes:      document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : ''
   };
