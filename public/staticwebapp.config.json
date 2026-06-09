@@ -1,0 +1,17 @@
+{
+  "routes": [
+    { "route": "/api/*", "allowedRoles": ["anonymous"] },
+    { "route": "/dashboard", "rewrite": "/dashboard/index.html" },
+    { "route": "/sign", "rewrite": "/public/sign.html" },
+    { "route": "/", "rewrite": "/public/index.html" }
+  ],
+  "navigationFallback": {
+    "rewrite": "/public/index.html",
+    "exclude": ["/api/*", "/dashboard/*", "*.css", "*.js", "*.png"]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  }
+}
