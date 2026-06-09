@@ -573,6 +573,13 @@ function buildSummary(d){
   if(d.subtotal){ var ds=document.getElementById('d-sub'); if(ds) ds.textContent=d.subtotal; }
   if(d.firstMonth){ var df=document.getElementById('d-first'); if(df) df.textContent=d.firstMonth; }
   if(d.monthly){ var dm=document.getElementById('d-monthly'); if(dm) dm.textContent=d.monthly; }
+  // Show addons row if rep had addons
+  var arEl=document.getElementById('row-addons');
+  if(arEl && (d.addonsVisible || (d.addons && d.addons !== '$0.00' && d.addons !== ''))){ 
+    arEl.style.display='flex';
+    var daEl=document.getElementById('d-addons'); if(daEl&&d.addons) daEl.textContent=d.addons;
+    var ddEl=document.getElementById('addon-detail'); if(ddEl&&d.addonDetail) ddEl.textContent=d.addonDetail;
+  }
   
   document.getElementById('enrollment-summary').innerHTML = html;
 }
@@ -655,10 +662,16 @@ function enterClientSigningMode(){
   // Unlock payment fields
   refreshPayFields();
 
-  // Unlock all .ii initials inputs
-  var idx=0;
+  // Unlock all .ii initials inputs (use only .ii to avoid double-registering)
+  var iiIdx=0;
   document.querySelectorAll('.ii').forEach(function(el){
-    var fid='ii-'+idx++;
+    // Skip inputs inside the inactive payment panel
+    var inCC = el.closest('#pp-cc');
+    var inACH = el.closest('#pp-ach');
+    var ccOn = document.getElementById('pp-cc').classList.contains('on');
+    if(inCC && !ccOn) return;
+    if(inACH && ccOn) return;
+    var fid='ii-'+iiIdx++;
     el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1'; el.placeholder='INIT.';
     hlField(el,false); regField(fid,el);
     el.addEventListener('input',function(){markField(fid,el.value.trim().length>0);});
@@ -670,21 +683,17 @@ function enterClientSigningMode(){
     var sw=cc.closest('.sigwrap');
     if(sw){ sw.style.border='2px solid #f5a623'; sw.style.background='#fffde7'; sw.style.boxShadow='0 0 0 3px rgba(245,166,35,.3)'; }
     cc.style.pointerEvents='auto'; cc.style.cursor='crosshair';
-    reinitPad(cc,function(){
-      if(SIGN_FIELDS['client-sig']) SIGN_FIELDS['client-sig'].completed=true;
-      if(sw){ sw.style.border='2px solid #2a7a2a'; sw.style.background='#e8f5e9'; sw.style.boxShadow='none'; }
+    // Register before reinitPad so the field exists
+    regField('client-sig', cc);
+    // reinitPad replaces the canvas and updates SIGN_FIELDS['client-sig'] internally
+    reinitPad(cc, function(){
+      var sf = SIGN_FIELDS['client-sig'];
+      if(sf) sf.completed = true;
+      var sigWrap = sf && sf.el ? sf.el.closest('.sigwrap') : sw;
+      if(sigWrap){ sigWrap.style.border='2px solid #2a7a2a'; sigWrap.style.background='#e8f5e9'; sigWrap.style.boxShadow='none'; }
       checkAllSigned();
     });
-    regField('client-sig',cc);
-    var clr=sw?sw.querySelector('.sigclr'):null;
-    if(clr){ clr.style.pointerEvents='auto'; clr.style.opacity='1';
-      clr.onclick=function(){
-        cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
-        if(SIGN_FIELDS['client-sig']) SIGN_FIELDS['client-sig'].completed=false;
-        if(sw){ sw.style.border='2px solid #f5a623'; sw.style.background='#fffde7'; sw.style.boxShadow='0 0 0 3px rgba(245,166,35,.3)'; }
-        checkAllSigned();
-      };
-    }
+    // Clear button is now wired inside reinitPad via newC._clearSig
   }
 
   // Register print name and title as required signing fields
