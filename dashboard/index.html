@@ -250,6 +250,15 @@ function loadData() {
     });
 }
 
+function handleBtn(el) {
+  var sid    = el.getAttribute('data-sid');
+  var biz    = el.getAttribute('data-biz') || '';
+  var action = el.getAttribute('data-act');
+  if(action === 'view') viewDoc(sid);
+  else if(action === 'edit') editForm(sid);
+  else if(action === 'del') deleteForm(sid, biz);
+}
+
 function renderStats() {
   var total   = DASH_DATA.length;
   var opened  = DASH_DATA.filter(function(r){ return r.status==='opened'||r.status==='signed'; }).length;
@@ -279,11 +288,13 @@ function renderTable() {
     var isSigned = r.status === 'signed';
     var isIP = r.signingMethod === 'in-person';
     var auditTip = r.auditHash ? 'title="SHA-256: '+r.auditHash.substring(0,16)+'..."' : '';
+            var sid = r.sessionId;
+    var bname = esc(r.bizName||'');
     var actions = '<div style="display:flex;gap:3px;flex-wrap:wrap;">';
-    if(isSigned) actions += '<button class="btn-sm btn-view" onclick="viewDoc(''+r.sessionId+'')">&#128196; View</button>';
+    if(isSigned) actions += '<button class="btn-sm btn-view" data-sid="'+sid+'" data-act="view" onclick="handleBtn(this)">&#128196; View</button>';
     if(!isSigned){
-      actions += '<button class="btn-sm btn-edit" onclick="editForm(''+r.sessionId+'')">&#9998; Edit</button>';
-      actions += '<button class="btn-sm btn-del" onclick="deleteForm(''+r.sessionId+'',''+esc(r.bizName||'')+'')">&#128465;</button>';
+      actions += '<button class="btn-sm btn-edit" data-sid="'+sid+'" data-act="edit" onclick="handleBtn(this)">&#9998; Edit</button>';
+      actions += '<button class="btn-sm btn-del" data-sid="'+sid+'" data-biz="'+bname+'" data-act="del" onclick="handleBtn(this)">&#128465;</button>';
     }
     actions += '</div>';
     html += '<tr>'
