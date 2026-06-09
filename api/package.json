@@ -2,7 +2,6 @@
   "name": "texan-local-enrollment-api",
   "version": "1.0.0",
   "description": "Azure Functions API for Texan Local Enrollment",
-  "main": "index.js",
   "dependencies": {
     "@azure/storage-blob": "^12.13.0",
     "uuid": "^9.0.0"
