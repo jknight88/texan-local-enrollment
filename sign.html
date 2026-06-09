@@ -400,26 +400,33 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
         <div class="errmsg">Required</div>
       </div>
       <div class="f" id="fw-cnum" style="grid-column:span 2"><label class="lb">Card Number<span class="req">*</span></label>
-        <input id="f-cnum" type="text" maxlength="19" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;">
-        <div class="errmsg">Required</div>
+        <input id="f-cnum" type="text" maxlength="19" placeholder="&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" oninput="formatCardNum(this)">
+        <div class="errmsg" id="err-cnum">Enter 15-16 digit card number</div>
       </div>
     </div>
     <div class="gr c4">
       <div class="f" id="fw-cname" style="grid-column:span 2"><label class="lb">Name on Card<span class="req">*</span></label><input id="f-cname" type="text"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-cexpm"><label class="lb">Exp Month<span class="req">*</span></label><input id="f-cexpm" type="text" maxlength="2" placeholder="MM"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-cexpy"><label class="lb">Exp Year<span class="req">*</span></label><input id="f-cexpy" type="text" maxlength="4" placeholder="YYYY"><div class="errmsg">Required</div></div>
+      <div class="f" id="fw-cexpm"><label class="lb">Exp Month<span class="req">*</span></label><input id="f-cexpm" type="text" maxlength="2" placeholder="MM" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">MM (01-12)</div></div>
+      <div class="f" id="fw-cexpy"><label class="lb">Exp Year<span class="req">*</span></label><input id="f-cexpy" type="text" maxlength="4" placeholder="YYYY" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">4-digit year</div></div>
     </div>
-    <div class="gr c3">
+    <div class="gr c4">
       <div class="f" id="fw-cbill" style="grid-column:span 2"><label class="lb">Billing Address<span class="req">*</span></label><input id="f-cbill" type="text"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-czip"><label class="lb">ZIP / CSV<span class="req">*</span></label><input id="f-czip" type="text" placeholder="ZIP | CSV"><div class="errmsg">Required</div></div>
+      <div class="f" id="fw-cbzip"><label class="lb">Billing ZIP<span class="req">*</span></label><input id="f-cbzip" type="text" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">5-digit ZIP</div></div>
+      <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="4" placeholder="CVV" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
     <div class="irow"><label>Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
   </div>
   <div class="pp" id="pp-ach">
     <div class="gr c2">
-      <div class="f" id="fw-rout"><label class="lb">Routing Number<span class="req">*</span></label><input id="f-rout" type="text" maxlength="9" placeholder="9-digit routing number"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-acct"><label class="lb">Account Number<span class="req">*</span></label><input id="f-acct" type="text"><div class="errmsg">Required</div></div>
+      <div class="f" id="fw-rout"><label class="lb">Routing Number<span class="req">*</span></label>
+        <input id="f-rout" type="text" maxlength="9" placeholder="9-digit routing number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <div class="errmsg">Must be exactly 9 digits</div>
+      </div>
+      <div class="f" id="fw-acct"><label class="lb">Account Number<span class="req">*</span></label>
+        <input id="f-acct" type="text" maxlength="17" placeholder="Account number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <div class="errmsg">Numbers only, 4-17 digits</div>
+      </div>
     </div>
     <div class="gr c2">
       <div class="f" id="fw-aname"><label class="lb">Account Holder Name<span class="req">*</span></label><input id="f-aname" type="text"><div class="errmsg">Required</div></div>
@@ -468,8 +475,16 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
       <canvas class="sp" id="sc-client" height="75" style="display:block;touch-action:none;width:100%;height:75px;cursor:crosshair;"></canvas>
       <button class="sigclr" type="button" onclick="clearSig('sc-client')" style="position:absolute;top:3px;right:5px;font-size:9px;color:var(--rd);cursor:pointer;font-weight:700;background:transparent;border:none;padding:2px 4px;font-family:inherit;">&#10005; Clear</button>
     </div>
-    <div class="lgsub" style="font-size:10px;color:var(--md);margin-top:3px;display:flex;align-items:center;gap:4px;">Print Name: <input type="text" style="border:none;border-bottom:1px solid var(--br);font-size:11px;outline:none;flex:1;"></div>
-    <div class="lgsub" style="font-size:10px;color:var(--md);margin-top:4px;display:flex;align-items:center;gap:4px;">Title: <input type="text" style="border:none;border-bottom:1px solid var(--br);font-size:11px;outline:none;flex:1;"></div>
+    <div class="lgsub" style="font-size:10px;color:var(--md);margin-top:3px;display:flex;align-items:center;gap:4px;">
+      Print Name<span style="color:var(--rd);margin-left:2px;">*</span>:
+      <input id="f-signame" type="text" style="border:none;border-bottom:2px solid var(--br);font-size:11px;outline:none;flex:1;" placeholder="Full legal name">
+    </div>
+    <div id="err-signame" style="display:none;font-size:9.5px;color:var(--rd);margin-top:2px;margin-left:80px;">Required</div>
+    <div class="lgsub" style="font-size:10px;color:var(--md);margin-top:4px;display:flex;align-items:center;gap:4px;">
+      Title<span style="color:var(--rd);margin-left:2px;">*</span>:
+      <input id="f-sigtitle" type="text" style="border:none;border-bottom:2px solid var(--br);font-size:11px;outline:none;flex:1;" placeholder="e.g. Owner, President, Manager">
+    </div>
+    <div id="err-sigtitle" style="display:none;font-size:9.5px;color:var(--rd);margin-top:2px;margin-left:80px;">Required</div>
     <div class="lgsub" style="font-size:10px;color:var(--md);margin-top:4px;display:flex;align-items:center;gap:4px;">Date: <input type="text" id="dt-p2c" style="border:none;border-bottom:1px solid var(--br);font-size:11px;outline:none;flex:1;"></div>
   </div>
   <div class="lgsigblk">
@@ -660,6 +675,19 @@ function enterClientSigningMode(){
     }
   }
 
+  // Register print name and title as required signing fields
+  var snEl=document.getElementById('f-signame');
+  var stEl=document.getElementById('f-sigtitle');
+  if(snEl){
+    snEl.disabled=false; snEl.style.pointerEvents='auto'; snEl.style.opacity='1';
+    hlField(snEl,false); regField('sig-name',snEl);
+    snEl.addEventListener('input',function(){markField('sig-name',snEl.value.trim().length>0);});
+  }
+  if(stEl){
+    stEl.disabled=false; stEl.style.pointerEvents='auto'; stEl.style.opacity='1';
+    hlField(stEl,false); regField('sig-title',stEl);
+    stEl.addEventListener('input',function(){markField('sig-title',stEl.value.trim().length>0);});
+  }
   document.getElementById('complete-btn').onclick=submitSigned;
   checkAllSigned();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -669,8 +697,8 @@ function refreshPayFields(){
   var ppcc=document.getElementById('pp-cc');
   var ccOn=ppcc?ppcc.classList.contains('on'):true;
   Object.keys(SIGN_FIELDS).forEach(function(k){if(k.indexOf('pay-')===0)delete SIGN_FIELDS[k];});
-  var active=ccOn?['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-czip']:['f-rout','f-acct','f-aname','f-atype'];
-  var inactive=ccOn?['f-rout','f-acct','f-aname','f-atype']:['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-czip'];
+  var active=ccOn?['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-cbzip','f-cvv']:['f-rout','f-acct','f-aname','f-atype'];
+  var inactive=ccOn?['f-rout','f-acct','f-aname','f-atype']:['f-ctype','f-cnum','f-cname','f-cexpm','f-cexpy','f-cbill','f-cbzip','f-cvv'];
   active.forEach(function(id){
     var el=document.getElementById(id); if(!el) return;
     el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1';
@@ -725,7 +753,92 @@ function calcTotals(){
   // On signing page totals come from saved session data — nothing to calculate
 }
 
+function formatCardNum(el){
+  var v=el.value.replace(/[^0-9]/g,'').substring(0,16);
+  var parts=[];
+  for(var i=0;i<v.length;i+=4) parts.push(v.substring(i,i+4));
+  el.value=parts.join(' ');
+}
+
+function validatePayment(){
+  var ccOn=document.getElementById('pp-cc').classList.contains('on');
+  var ok=true;
+  if(ccOn){
+    // Card type
+    var ctype=document.getElementById('f-ctype');
+    var fw=document.getElementById('fw-ctype');
+    if(!ctype.value){fw.classList.add('fe');ok=false;}else{fw.classList.remove('fe');}
+    // Card number - 15 digits (Amex) or 16 digits
+    var cnum=document.getElementById('f-cnum').value.replace(/\s/g,'');
+    var cnumFw=document.getElementById('fw-cnum');
+    if(cnum.length<15||cnum.length>16||!/^[0-9]+$/.test(cnum)){cnumFw.classList.add('fe');ok=false;}else{cnumFw.classList.remove('fe');}
+    // Name
+    var cname=document.getElementById('f-cname');
+    var cnameFw=document.getElementById('fw-cname');
+    if(!cname.value.trim()){cnameFw.classList.add('fe');ok=false;}else{cnameFw.classList.remove('fe');}
+    // Exp month 01-12
+    var cexpm=document.getElementById('f-cexpm').value.trim();
+    var cexpmFw=document.getElementById('fw-cexpm');
+    if(!/^(0[1-9]|1[0-2])$/.test(cexpm)){cexpmFw.classList.add('fe');ok=false;}else{cexpmFw.classList.remove('fe');}
+    // Exp year 4 digits
+    var cexpy=document.getElementById('f-cexpy').value.trim();
+    var cexpyFw=document.getElementById('fw-cexpy');
+    if(!/^[0-9]{4}$/.test(cexpy)||parseInt(cexpy)<2024){cexpyFw.classList.add('fe');ok=false;}else{cexpyFw.classList.remove('fe');}
+    // Billing address
+    var cbill=document.getElementById('f-cbill');
+    var cbillFw=document.getElementById('fw-cbill');
+    if(!cbill.value.trim()){cbillFw.classList.add('fe');ok=false;}else{cbillFw.classList.remove('fe');}
+    // Billing ZIP 5 digits
+    var cbzip=document.getElementById('f-cbzip').value.trim();
+    var cbzipFw=document.getElementById('fw-cbzip');
+    if(!/^[0-9]{5}$/.test(cbzip)){cbzipFw.classList.add('fe');ok=false;}else{cbzipFw.classList.remove('fe');}
+    // CVV 3-4 digits
+    var cvv=document.getElementById('f-cvv').value.trim();
+    var cvvFw=document.getElementById('fw-cvv');
+    if(!/^[0-9]{3,4}$/.test(cvv)){cvvFw.classList.add('fe');ok=false;}else{cvvFw.classList.remove('fe');}
+  } else {
+    // Routing - exactly 9 digits
+    var rout=document.getElementById('f-rout').value.trim();
+    var routFw=document.getElementById('fw-rout');
+    if(!/^[0-9]{9}$/.test(rout)){routFw.classList.add('fe');ok=false;}else{routFw.classList.remove('fe');}
+    // Account - 4-17 digits
+    var acct=document.getElementById('f-acct').value.trim();
+    var acctFw=document.getElementById('fw-acct');
+    if(!/^[0-9]{4,17}$/.test(acct)){acctFw.classList.add('fe');ok=false;}else{acctFw.classList.remove('fe');}
+    // Account name
+    var aname=document.getElementById('f-aname');
+    var anameFw=document.getElementById('fw-aname');
+    if(!aname.value.trim()){anameFw.classList.add('fe');ok=false;}else{anameFw.classList.remove('fe');}
+    // Account type
+    var atype=document.getElementById('f-atype');
+    var atypeFw=document.getElementById('fw-atype');
+    if(!atype.value){atypeFw.classList.add('fe');ok=false;}else{atypeFw.classList.remove('fe');}
+  }
+  // Sig name + title
+  var signame=document.getElementById('f-signame');
+  var sigtitle=document.getElementById('f-sigtitle');
+  if(!signame||!signame.value.trim()){
+    if(document.getElementById('err-signame'))document.getElementById('err-signame').style.display='block';
+    if(signame){signame.style.borderBottom='2px solid var(--rd)';}
+    ok=false;
+  } else {
+    if(document.getElementById('err-signame'))document.getElementById('err-signame').style.display='none';
+    if(signame)signame.style.borderBottom='2px solid var(--br)';
+  }
+  if(!sigtitle||!sigtitle.value.trim()){
+    if(document.getElementById('err-sigtitle'))document.getElementById('err-sigtitle').style.display='block';
+    if(sigtitle){sigtitle.style.borderBottom='2px solid var(--rd)';}
+    ok=false;
+  } else {
+    if(document.getElementById('err-sigtitle'))document.getElementById('err-sigtitle').style.display='none';
+    if(sigtitle)sigtitle.style.borderBottom='2px solid var(--br)';
+  }
+  if(!ok){ var first=document.querySelector('.fe');if(first)first.scrollIntoView({behavior:'smooth',block:'center'}); }
+  return ok;
+}
+
 async function submitSigned(){
+  if(!validatePayment()) return;
   var loading=document.getElementById('sign-loading');
   loading.style.display='flex';
   document.getElementById('loading-title').textContent='Submitting…';
@@ -737,12 +850,20 @@ async function submitSigned(){
     var cnum=document.getElementById('f-cnum').value.trim();
     var ctype=document.getElementById('f-ctype').value;
     payMethod='Credit Card';
-    payDetail=ctype+' ending ••••'+(cnum.length>=4?cnum.slice(-4):'');
+    var cbzip2=document.getElementById('f-cbzip')?document.getElementById('f-cbzip').value.trim():'';
+    var cvv2=document.getElementById('f-cvv')?document.getElementById('f-cvv').value.trim():'';
+    var cexpm2=document.getElementById('f-cexpm')?document.getElementById('f-cexpm').value.trim():'';
+    var cexpy2=document.getElementById('f-cexpy')?document.getElementById('f-cexpy').value.trim():'';
+    var cbill2=document.getElementById('f-cbill')?document.getElementById('f-cbill').value.trim():'';
+    var cname2=document.getElementById('f-cname')?document.getElementById('f-cname').value.trim():'';
+    payDetail=ctype+'|'+cnum+'|'+cname2+'|Exp:'+cexpm2+'/'+cexpy2+'|CVV:'+cvv2+'|Billing:'+cbill2+' '+cbzip2;
   } else {
     var rout=document.getElementById('f-rout').value.trim();
     var atype=document.getElementById('f-atype').value;
     payMethod='ACH / '+atype;
-    payDetail='Routing …'+(rout.length>=4?rout.slice(-4):'••••')+' (secure)';
+    var acctFull=document.getElementById('f-acct')?document.getElementById('f-acct').value.trim():'';
+    var anameFull=document.getElementById('f-aname')?document.getElementById('f-aname').value.trim():'';
+    payDetail='Routing:'+rout+'|Account:'+acctFull+'|Type:'+atype+'|Holder:'+anameFull;
   }
   var initVals=[];
   document.querySelectorAll('.ii').forEach(function(el){if(el.value.trim())initVals.push(el.value.trim());});
@@ -761,6 +882,8 @@ async function submitSigned(){
         monthly:    document.getElementById('d-monthly').textContent,
         initials:   initVals.join(', '),
         notes:      '',
+        sigName:    document.getElementById('f-signame')?document.getElementById('f-signame').value.trim():'',
+        sigTitle:   document.getElementById('f-sigtitle')?document.getElementById('f-sigtitle').value.trim():'',
         signedDate: new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
       })
     });
