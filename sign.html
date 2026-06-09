@@ -414,18 +414,18 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
         <div class="errmsg">Required</div>
       </div>
       <div class="f" id="fw-cnum" style="grid-column:span 2"><label class="lb">Card Number<span class="req">*</span></label>
-        <input id="f-cnum" type="text" maxlength="19" placeholder="Card number" oninput="formatCardNum(this)" onblur="validateCardNum(this)">
+        <input id="f-cnum" type="text" maxlength="19" inputmode="numeric" placeholder="Card number" oninput="formatCardNum(this)" onblur="validateCardNum(this)">
         <div class="errmsg" id="err-cnum">Enter 15-16 digit card number</div>
       </div>
     </div>
     <div class="gr c4">
       <div class="f" id="fw-cname" style="grid-column:span 2"><label class="lb">Name on Card<span class="req">*</span></label><input id="f-cname" type="text"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-cexpm"><label class="lb">Exp Month<span class="req">*</span></label><input id="f-cexpm" type="text" maxlength="2" placeholder="MM" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">MM (01-12)</div></div>
-      <div class="f" id="fw-cexpy"><label class="lb">Exp Year<span class="req">*</span></label><input id="f-cexpy" type="text" maxlength="4" placeholder="YYYY" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">4-digit year</div></div>
+      <div class="f" id="fw-cexpm"><label class="lb">Exp Month<span class="req">*</span></label><input id="f-cexpm" type="text" maxlength="2" inputmode="numeric" placeholder="MM" oninput="enforceDigits(this,2)"><div class="errmsg">MM (01-12)</div></div>
+      <div class="f" id="fw-cexpy"><label class="lb">Exp Year<span class="req">*</span></label><input id="f-cexpy" type="text" maxlength="4" inputmode="numeric" placeholder="YYYY" oninput="enforceDigits(this,4)"><div class="errmsg">4-digit year</div></div>
     </div>
     <div class="gr c4">
       <div class="f" id="fw-cbill" style="grid-column:span 2"><label class="lb">Billing Address<span class="req">*</span></label><input id="f-cbill" type="text"><div class="errmsg">Required</div></div>
-      <div class="f" id="fw-cbzip"><label class="lb">Billing ZIP<span class="req">*</span></label><input id="f-cbzip" type="text" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">5-digit ZIP</div></div>
+      <div class="f" id="fw-cbzip"><label class="lb">Billing ZIP<span class="req">*</span></label><input id="f-cbzip" type="text" maxlength="5" inputmode="numeric" placeholder="00000" oninput="enforceDigits(this,5)"><div class="errmsg">5-digit ZIP</div></div>
       <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
@@ -434,11 +434,11 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
   <div class="pp" id="pp-ach">
     <div class="gr c2">
       <div class="f" id="fw-rout"><label class="lb">Routing Number<span class="req">*</span></label>
-        <input id="f-rout" type="text" maxlength="9" placeholder="9-digit routing number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <input id="f-rout" type="text" maxlength="9" inputmode="numeric" placeholder="9-digit routing number" oninput="enforceDigits(this,9)">
         <div class="errmsg">Must be exactly 9 digits</div>
       </div>
       <div class="f" id="fw-acct"><label class="lb">Account Number<span class="req">*</span></label>
-        <input id="f-acct" type="text" maxlength="17" placeholder="Account number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <input id="f-acct" type="text" maxlength="17" inputmode="numeric" placeholder="4-17 digit account number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
         <div class="errmsg">Numbers only, 4-17 digits</div>
       </div>
     </div>
@@ -825,6 +825,28 @@ function calcTotals(){
   // On signing page totals come from saved session data — nothing to calculate
 }
 
+function enforceDigits(el, exact){
+  el.value = el.value.replace(/[^0-9]/g,'').substring(0, exact);
+  var fw = el.closest('.f');
+  if(fw){
+    if(el.value.length === exact){ fw.classList.remove('fe'); }
+    else if(el.value.length > 0){ fw.classList.add('fe'); }
+    else { fw.classList.remove('fe'); }
+  }
+}
+
+function enforceCVV(el){
+  var isAmex = document.getElementById('f-ctype') && document.getElementById('f-ctype').value === 'Amex';
+  var reqLen = isAmex ? 4 : 3;
+  el.value = el.value.replace(/[^0-9]/g,'').substring(0, reqLen);
+  var fw = el.closest('.f');
+  if(fw){
+    if(el.value.length === reqLen){ fw.classList.remove('fe'); }
+    else if(el.value.length > 0){ fw.classList.add('fe'); }
+    else { fw.classList.remove('fe'); }
+  }
+}
+
 function formatCardNum(el){
   var v=el.value.replace(/[^0-9]/g,'').substring(0,16);
   var parts=[];
@@ -839,11 +861,36 @@ function updateCvvLength(cardType){
   if(cardType === 'Amex'){
     cvvEl.maxLength = 4;
     cvvEl.placeholder = 'XXXX';
-    if(cvvFw) cvvFw.querySelector('.errmsg').textContent = '4 digits (Amex)';
+    if(cvvFw){ var em=cvvFw.querySelector('.errmsg'); if(em) em.textContent='4 digits (Amex)'; }
   } else {
     cvvEl.maxLength = 3;
     cvvEl.placeholder = 'CVV';
-    if(cvvFw) cvvFw.querySelector('.errmsg').textContent = '3 digits';
+    if(cvvFw){ var em=cvvFw.querySelector('.errmsg'); if(em) em.textContent='3 digits'; }
+  }
+  // Trim CVV to new max length if already entered
+  if(cvvEl.value.length > cvvEl.maxLength){
+    cvvEl.value = cvvEl.value.substring(0, cvvEl.maxLength);
+  }
+  // Clear and reformat card number when switching types
+  // because digit count requirements change (15 vs 16)
+  var cnumEl = document.getElementById('f-cnum');
+  if(cnumEl && cnumEl.value){
+    var digits = cnumEl.value.replace(/\s/g,'');
+    var maxDigits = (cardType === 'Amex') ? 15 : 16;
+    if(digits.length > maxDigits){
+      // Truncate to new max and reformat
+      digits = digits.substring(0, maxDigits);
+      var parts = [];
+      if(cardType === 'Amex'){
+        if(digits.length > 0) parts.push(digits.substring(0,4));
+        if(digits.length > 4) parts.push(digits.substring(4,10));
+        if(digits.length > 10) parts.push(digits.substring(10,15));
+      } else {
+        for(var i=0;i<digits.length;i+=4) parts.push(digits.substring(i,i+4));
+      }
+      cnumEl.value = parts.join(' ');
+    }
+    cnumEl.maxLength = (cardType === 'Amex') ? 19 : 19; // formatted with spaces
   }
 }
 
@@ -978,14 +1025,22 @@ async function submitSigned(){
     });
     var data=await resp.json();
     if(resp.ok&&data.ok){
-      document.getElementById('loading-title').textContent='✓ Agreement Submitted!';
-      document.getElementById('loading-msg').textContent='Thank you for signing. Your Texan Local representative will be in touch soon.';
+      // Make overlay fully opaque - solid blocking completion screen
+      var loadingOverlay = document.getElementById('sign-loading');
+      loadingOverlay.style.background = '#00205B';
+      loadingOverlay.style.zIndex = '99999';
+      var loadingBox = loadingOverlay.querySelector('.sign-loading-box');
+      if(loadingBox){
+        loadingBox.style.maxWidth = '460px';
+        loadingBox.style.padding = '2.5rem';
+        loadingBox.style.textAlign = 'center';
+        loadingBox.style.borderTop = '6px solid #BF0D3E';
+      }
+      document.getElementById('loading-title').innerHTML = '<span style="font-size:52px;display:block;margin-bottom:12px;">&#10003;</span>✓ Agreement Signed!';
+      document.getElementById('loading-title').style.color = '#1a5c1a';
+      document.getElementById('loading-title').style.fontSize = '20px';
+      document.getElementById('loading-msg').innerHTML = '<strong style="color:#1a1a2e;font-size:14px;">Thank you, your enrollment agreement has been completed.</strong><br><br><span style="color:#4a4f5e;font-size:12px;">Your Texan Local representative will be in touch soon regarding your first publication.</span>';
       document.querySelector('.spinner').style.display='none';
-      var banner=document.getElementById('sign-banner');
-      banner.style.background='#1a5c1a'; banner.style.borderBottomColor='#2a9a2a';
-      document.getElementById('sign-progress').textContent='✓ Agreement signed and submitted. Thank you!';
-      var cb=document.getElementById('complete-btn');
-      cb.textContent='✓ Complete'; cb.style.background='#1a5c1a';
     } else {
       throw new Error(data.error||'Submit failed');
     }
