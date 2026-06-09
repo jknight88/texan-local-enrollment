@@ -727,24 +727,75 @@ function refreshPayFields(){
   checkAllSigned();
 }
 
-function reinitPad(canvas,onFirstStroke){
-  var newC=canvas.cloneNode(true);
-  canvas.parentNode.replaceChild(newC,canvas);
-  var ctx=newC.getContext('2d');
-  ctx.strokeStyle='#00205B';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
-  var drawing=false,lx=0,ly=0,stroked=false;
-  function pos(e){var r=newC.getBoundingClientRect(),sx=newC.width/r.width,sy=newC.height/r.height;if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};}
+function reinitPad(canvas, onFirstStroke){
+  var newC = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newC, canvas);
+
+  // Size canvas to display size
+  var w = newC.offsetWidth || newC.parentElement.offsetWidth || 400;
+  newC.width = w;
+  newC.height = parseInt(newC.style.height||newC.getAttribute('height')||75);
+
+  var ctx = newC.getContext('2d');
+  ctx.strokeStyle='#00205B'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round';
+  var drawing=false, lx=0, ly=0, stroked=false;
+
+  function pos(e){
+    var r=newC.getBoundingClientRect(), sx=newC.width/r.width, sy=newC.height/r.height;
+    if(e.touches) return{x:(e.touches[0].clientX-r.left)*sx, y:(e.touches[0].clientY-r.top)*sy};
+    return{x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy};
+  }
+
+  function onStroke(){
+    if(!stroked){
+      stroked=true;
+      // Mark as completed in SIGN_FIELDS
+      if(SIGN_FIELDS['client-sig']) SIGN_FIELDS['client-sig'].completed=true;
+      onFirstStroke();
+    }
+  }
+
   newC.addEventListener('mousedown',function(e){e.preventDefault();drawing=true;var p=pos(e);lx=p.x;ly=p.y;});
-  newC.addEventListener('mousemove',function(e){if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;if(!stroked){stroked=true;onFirstStroke();}});
+  newC.addEventListener('mousemove',function(e){if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;onStroke();});
   newC.addEventListener('mouseup',function(){drawing=false;});
   newC.addEventListener('mouseleave',function(){drawing=false;});
   newC.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=pos(e);lx=p.x;ly=p.y;},{passive:false});
-  newC.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;if(!stroked){stroked=true;onFirstStroke();}},{passive:false});
+  newC.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;onStroke();},{passive:false});
   newC.addEventListener('touchend',function(){drawing=false;});
-  SIGN_FIELDS['client-sig']={el:newC,completed:false};
+
+  // Update SIGN_FIELDS with new canvas reference
+  SIGN_FIELDS['client-sig'] = {el:newC, completed:false};
+
+  // Attach clear function directly to this canvas instance
+  newC._clearSig = function(){
+    ctx.clearRect(0,0,newC.width,newC.height);
+    stroked = false;
+    SIGN_FIELDS['client-sig'].completed = false;
+    var sw = newC.closest ? newC.closest('.sigwrap') : null;
+    if(sw){ sw.style.border='2px solid #f5a623'; sw.style.background='#fffde7'; sw.style.boxShadow='0 0 0 3px rgba(245,166,35,.3)'; }
+    checkAllSigned();
+  };
+
+  // Update the clear button to use this instance's clear function
+  var sw = newC.closest ? newC.closest('.sigwrap') : null;
+  if(sw){
+    var clrBtn = sw.querySelector('.sigclr') || sw.querySelector('button');
+    if(clrBtn){
+      clrBtn.onclick = function(){ newC._clearSig(); };
+    }
+  }
 }
 
-function clearSig(id){ var c=document.getElementById(id); if(c) c.getContext('2d').clearRect(0,0,c.width,c.height); }
+function clearSig(id){
+  var c = document.getElementById(id);
+  if(!c) return;
+  // Use instance clear if available (post-reinit)
+  if(c._clearSig){ c._clearSig(); return; }
+  // Fallback
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+  if(SIGN_FIELDS['client-sig']) SIGN_FIELDS['client-sig'].completed=false;
+  checkAllSigned();
+}
 
 function checkAllSigned(){
   var keys=Object.keys(SIGN_FIELDS);
