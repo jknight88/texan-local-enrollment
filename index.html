@@ -1023,10 +1023,12 @@ function collectRepFormData() {
     zip:      document.getElementById('f-zip').value.trim(),
     phone:    document.getElementById('f-phone').value.trim(),
     term:     term ? term.value + ' months' : '',
-    subtotal: document.getElementById('d-sub').textContent,
-    addons:   document.getElementById('d-addons').textContent,
-    zones:    zones,
-    notes:    document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : ''
+    subtotal:   document.getElementById('d-sub').textContent,
+    addons:     document.getElementById('d-addons').textContent,
+    firstMonth: document.getElementById('d-first').textContent,
+    monthly:    document.getElementById('d-monthly').textContent,
+    zones:      zones,
+    notes:      document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : ''
   };
 }
 
