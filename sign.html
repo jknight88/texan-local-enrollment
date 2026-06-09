@@ -936,21 +936,26 @@ function fmt(n){return'$'+n.toFixed(2);}
 function calcTotals(){
   var sub=0;
   document.querySelectorAll('.ri').forEach(function(el){sub+=parseFloat(el.value)||0;});
-  // Setup fee included in add-ons
-  var su=document.getElementById('chk-setup').checked?(parseFloat(document.getElementById('setup-fee').value)||0):0;
+  var setupEl=document.getElementById('chk-setup');
+  var su=setupEl&&setupEl.checked?(parseFloat(document.getElementById('setup-fee').value)||0):0;
   var ao=su,parts=[];
-  if(su){parts.push('Setup Fee (one-time) '+fmt(su));}
-  if(document.getElementById('chk-track').checked){var v=parseFloat(document.getElementById('track-amt').value)||0;ao+=v;if(v)parts.push('Call Tracking '+fmt(v)+'/mo');}
-  if(document.getElementById('chk-premium').checked){var v2=parseFloat(document.getElementById('premium-amt').value)||0;ao+=v2;if(v2)parts.push('Premium Placement '+fmt(v2)+'/mo');}
-  if(document.getElementById('chk-custom').checked){var v3=parseFloat(document.getElementById('custom-amt').value)||0;var lbl=document.getElementById('custom-lbl').value||'Add-On';ao+=v3;if(v3)parts.push(lbl+' '+fmt(v3)+'/mo');}
-  document.getElementById('d-sub').textContent=fmt(sub);
+  if(su){parts.push('Setup Fee (one-time) $'+su.toFixed(2));}
+  var trackEl=document.getElementById('chk-track');
+  if(trackEl&&trackEl.checked){var v=parseFloat(document.getElementById('track-amt').value)||0;ao+=v;if(v)parts.push('Call Tracking $'+v.toFixed(2)+'/mo');}
+  var premEl=document.getElementById('chk-premium');
+  if(premEl&&premEl.checked){var v2=parseFloat(document.getElementById('premium-amt').value)||0;ao+=v2;if(v2)parts.push('Premium Placement $'+v2.toFixed(2)+'/mo');}
+  var custEl=document.getElementById('chk-custom');
+  if(custEl&&custEl.checked){var v3=parseFloat(document.getElementById('custom-amt').value)||0;var lbl=document.getElementById('custom-lbl').value||'Add-On';ao+=v3;if(v3)parts.push(lbl+' $'+v3.toFixed(2)+'/mo');}
+  var dSub=document.getElementById('d-sub');if(dSub)dSub.textContent='$'+sub.toFixed(2);
+  var dSetup=document.getElementById('d-setup');if(dSetup)dSetup.textContent='$'+su.toFixed(2);
   var ar=document.getElementById('row-addons');
-  if(ao>0){ar.style.display='flex';document.getElementById('d-addons').textContent=fmt(ao);document.getElementById('addon-detail').textContent=parts.join(' \u00b7 ');}
-  else ar.style.display='none';
-  // First month = sub + all addons (including setup); monthly = sub + recurring addons only (no setup)
+  if(ar){
+    if(ao>0){ar.style.display='flex';var da=document.getElementById('d-addons');if(da)da.textContent='$'+ao.toFixed(2);var dd=document.getElementById('addon-detail');if(dd)dd.textContent=parts.join(' \u00b7 ');}
+    else ar.style.display='none';
+  }
   var recurringAo=ao-su;
-  document.getElementById('d-first').textContent=fmt(sub+ao);
-  document.getElementById('d-monthly').textContent=fmt(sub+recurringAo);
+  var df=document.getElementById('d-first');if(df)df.textContent='$'+(sub+ao).toFixed(2);
+  var dm=document.getElementById('d-monthly');if(dm)dm.textContent='$'+(sub+recurringAo).toFixed(2);
 }
 function initPad(id){
   var canvas=document.getElementById(id);
@@ -1010,9 +1015,9 @@ function validate(){
 }
 function savePDF(){
   var abar=document.querySelector('.abar');
-  abar.style.display='none';
+  if(abar)abar.style.display='none';
   window.print();
-  setTimeout(function(){abar.style.display='flex';},1500);
+  setTimeout(function(){if(abar)abar.style.display='flex';},1500);
 }
 function doEmail(){
   if(!validate())return;
