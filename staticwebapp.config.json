@@ -1,27 +1,20 @@
 {
   "routes": [
     {
-      "route": "/",
+      "route": "/*",
       "rewrite": "/index.html"
     },
     {
-      "route": "/dashboard",
+      "route": "/dashboard/*",
       "rewrite": "/dashboard/index.html"
     },
     {
-      "route": "/sign*",
-      "rewrite": "/sign.html"
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
     }
   ],
-  "responseOverrides": {
-    "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
-    }
-  },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "SAMEORIGIN",
-    "Referrer-Policy": "strict-origin-when-cross-origin"
+    "X-Frame-Options": "SAMEORIGIN"
   }
 }
