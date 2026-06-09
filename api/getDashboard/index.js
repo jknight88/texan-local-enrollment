@@ -12,7 +12,7 @@ module.exports = async function(context, req) {
     const container = blobSvc.getContainerClient(CONTAINER);
     const results   = [];
     for await (const blob of container.listBlobsFlat()) {
-      if (blob.name.endsWith("_audit.json")) continue; // skip audit logs
+      if (blob.name.endsWith("_audit.json")) continue;
       const dl     = await container.getBlockBlobClient(blob.name).downloadToBuffer();
       const record = JSON.parse(dl.toString());
       results.push({
@@ -29,7 +29,11 @@ module.exports = async function(context, req) {
         auditHash:   record.auditHash,
         verified:    record.verified || false,
         term:        record.formData && record.formData.term,
-        monthly:     record.signed   && record.signed.monthly
+        monthly:     record.signed   && record.signed.monthly,
+        // Full signed data for document view
+        formData:    record.formData,
+        signed:      record.signed,
+        auditTrail:  record.auditTrail
       });
     }
     results.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
