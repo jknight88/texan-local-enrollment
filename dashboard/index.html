@@ -201,7 +201,16 @@ var DASH_KEY  = '';
 
 function login(){
   DASH_KEY = document.getElementById('dash-key').value.trim();
-  if(!DASH_KEY){ document.getElementById('login-err').style.display='block'; return; }
+  var errEl = document.getElementById('login-err');
+  if(!DASH_KEY){
+    errEl.textContent = 'Please enter your dashboard password.';
+    errEl.style.display='block';
+    return;
+  }
+  errEl.style.display='none';
+  errEl.textContent = 'Connecting…';
+  errEl.style.color = 'var(--md)';
+  errEl.style.display='block';
   loadData();
 }
 
