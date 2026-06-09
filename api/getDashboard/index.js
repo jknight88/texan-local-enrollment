@@ -1,4 +1,3 @@
-// GET /api/getDashboard?key=DASHBOARD_KEY
 const { BlobServiceClient } = require("@azure/storage-blob");
 const STORAGE_CONN  = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const CONTAINER     = "enrollments";
@@ -16,24 +15,26 @@ module.exports = async function(context, req) {
       const dl     = await container.getBlockBlobClient(blob.name).downloadToBuffer();
       const record = JSON.parse(dl.toString());
       results.push({
-        sessionId:   record.sessionId,
-        bizName:     record.bizName,
-        clientEmail: record.clientEmail,
-        status:      record.status,
-        createdAt:   record.createdAt,
-        openedAt:    record.openedAt,
-        verifiedAt:  record.verifiedAt,
-        signedAt:    record.signedAt,
-        consentAt:   record.signed && record.signed.consentAt,
-        ipAddress:   record.signed && record.signed.ipAddress,
-        auditHash:   record.auditHash,
-        verified:    record.verified || false,
-        term:        record.formData && record.formData.term,
-        monthly:     record.signed   && record.signed.monthly,
-        // Full signed data for document view
-        formData:    record.formData,
-        signed:      record.signed,
-        auditTrail:  record.auditTrail
+        sessionId:    record.sessionId,
+        bizName:      record.bizName,
+        clientEmail:  record.clientEmail,
+        status:       record.status,
+        signingMethod: record.signingMethod || 'remote',
+        createdAt:    record.createdAt,
+        openedAt:     record.openedAt,
+        lastOpenedAt: record.lastOpenedAt,
+        openCount:    record.openCount || 0,
+        verifiedAt:   record.verifiedAt,
+        signedAt:     record.signedAt,
+        consentAt:    record.signed && record.signed.consentAt,
+        ipAddress:    record.signed && record.signed.ipAddress,
+        auditHash:    record.auditHash,
+        verified:     record.verified || false,
+        term:         record.formData && record.formData.term,
+        monthly:      record.signed   && record.signed.monthly,
+        formData:     record.formData,
+        signed:       record.signed,
+        auditTrail:   record.auditTrail
       });
     }
     results.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
