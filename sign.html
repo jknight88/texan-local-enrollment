@@ -1598,11 +1598,9 @@ function enterClientSigningMode(){
     c.style.pointerEvents='none'; c.style.opacity='0.35';
     var w=c.closest('.sigwrap'); if(w)w.style.opacity='0.35';
   });
-
   // Unlock payment tabs
   document.querySelectorAll('.ptab').forEach(function(el){el.removeAttribute('disabled');el.style.pointerEvents='auto';el.style.opacity='1';});
-  document.querySelector('.ptabs').style.display='flex';
-
+  var ptabs=document.querySelector('.ptabs');if(ptabs)ptabs.style.display='flex';
   // Unlock initials
   var idx=0;
   document.querySelectorAll('.ii').forEach(function(el){
