@@ -208,9 +208,21 @@ function login(){
 async function loadData(){
   try {
     var resp = await fetch('/api/getDashboard?key=' + encodeURIComponent(DASH_KEY));
-    if(resp.status===401){ document.getElementById('login-err').style.display='block'; return; }
-    if(!resp.ok) throw new Error('Server error '+resp.status);
-    DASH_DATA = await resp.json();
+    var data;
+    try { data = await resp.json(); } catch(e){ data = {}; }
+    if(resp.status===401){
+      var errEl = document.getElementById('login-err');
+      errEl.textContent = 'Incorrect password. Please try again.';
+      errEl.style.display='block';
+      return;
+    }
+    if(!resp.ok){
+      var errEl2 = document.getElementById('login-err');
+      errEl2.textContent = 'Server error '+ resp.status + (data.error ? ': '+data.error : '') + '. Check Azure configuration.';
+      errEl2.style.display='block';
+      return;
+    }
+    DASH_DATA = Array.isArray(data) ? data : [];
     document.getElementById('login-gate').style.display='none';
     document.getElementById('dashboard').style.display='block';
     document.getElementById('login-err').style.display='none';
@@ -218,7 +230,9 @@ async function loadData(){
     renderTable();
     document.getElementById('last-updated').textContent='Last updated: '+new Date().toLocaleTimeString();
   } catch(err){
-    alert('Error loading dashboard: '+err.message);
+    var errEl3 = document.getElementById('login-err');
+    errEl3.textContent = 'Connection error: '+err.message+'. Check that the API is deployed.';
+    errEl3.style.display='block';
   }
 }
 
