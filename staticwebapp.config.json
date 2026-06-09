@@ -1,16 +1,12 @@
 {
   "routes": [
     {
-      "route": "/*",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/dashboard/*",
+      "route": "/dashboard",
       "rewrite": "/dashboard/index.html"
     },
     {
-      "route": "/api/*",
-      "allowedRoles": ["anonymous"]
+      "route": "/sign*",
+      "rewrite": "/sign.html"
     }
   ],
   "globalHeaders": {
