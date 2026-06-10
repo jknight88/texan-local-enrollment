@@ -111,8 +111,10 @@ window.addEventListener('load', function(){
 async function loadAgreement(){
   try {
     var resp = await fetch('/api/countersign?id='+SESSION_ID+'&key='+encodeURIComponent(AUTH_KEY));
-    var data = await resp.json();
-    if(!resp.ok){ throw new Error(data.error||'Load failed'); }
+    var rawText = await resp.text();
+    var data;
+    try { data = JSON.parse(rawText); } catch(e){ throw new Error('Server error: '+rawText.substring(0,120)); }
+    if(!resp.ok){ throw new Error(data.error||'Load failed ('+resp.status+')'); }
 
     // Show agreement summary
     var d = data, s = d.signed||{}, fd = d.formData||{};
@@ -209,7 +211,9 @@ async function completeSigning(){
         repSigTitle: sigTitle
       })
     });
-    var data = await resp.json();
+    var rawText = await resp.text();
+    var data;
+    try { data = JSON.parse(rawText); } catch(e){ throw new Error('Server error ('+resp.status+'): '+rawText.substring(0,120)); }
     if(resp.ok && data.ok){
       document.getElementById('load-spinner').style.display='none';
       document.getElementById('load-title').textContent='Agreement Complete!';
