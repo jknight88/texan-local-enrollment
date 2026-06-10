@@ -986,8 +986,18 @@ async function submitSigned(){
     payDetail = 'Routing:'+rout+'|Account:'+acct+'|Type:'+atype+'|Holder:'+aname;
   }
 
-  var initVals=[];
-  document.querySelectorAll('.ii').forEach(function(el){ if(el.value.trim()) initVals.push(el.value.trim()); });
+  // Collect initials by section
+  var initPayment='', initTC='', initAuth='';
+  document.querySelectorAll('.irow').forEach(function(row){
+    var inp=row.querySelector('input');
+    if(!inp||!inp.value.trim()) return;
+    var lbl=(row.querySelector('label')||{}).textContent||'';
+    lbl=lbl.toLowerCase();
+    if(lbl.indexOf('payment')>=0) initPayment=inp.value.trim();
+    else if(lbl.indexOf('terms')>=0||lbl.indexOf('t&c')>=0||lbl.indexOf('conditions')>=0||lbl.indexOf('read')>=0) initTC=inp.value.trim();
+    else if(lbl.indexOf('auth')>=0) initAuth=inp.value.trim();
+    else if(!initPayment) initPayment=inp.value.trim();
+  });
   var sigName  = (document.getElementById('f-signame')  || {value:''}).value.trim();
   var sigTitle = (document.getElementById('f-sigtitle') || {value:''}).value.trim();
 
@@ -1003,7 +1013,12 @@ async function submitSigned(){
         subtotal:   document.getElementById('d-sub').textContent,
         firstMonth: document.getElementById('d-first').textContent,
         monthly:    document.getElementById('d-monthly').textContent,
-        initials:   initVals.join(', '),
+        initials:   JSON.stringify({payment:initPayment,tc:initTC,auth:initAuth}),
+        sigImage:   (function(){
+          var sw=document.querySelector('.sigwrap'); 
+          if(sw){ var cc=sw.querySelector('canvas'); if(cc) try{ return cc.toDataURL('image/png'); }catch(e){} }
+          return '';
+        })(),
         sigName:    sigName,
         sigTitle:   sigTitle,
         repSigName: 'Josh Knight',
