@@ -589,16 +589,16 @@ async function loadSession(){
       ? 'The request timed out. The server may be starting up — please wait 30 seconds and try your link again.'
       : err.message;
     var msg = err.name === 'AbortError'
-      ? 'The request timed out. The server may be starting up — please wait 30 seconds and try your link again.'
+      ? 'Request timed out. Please wait 30 seconds and try your link again.'
       : err.message;
     var pl = document.getElementById('page-loading');
     if(pl){
-      pl.innerHTML = '<div style="text-align:center;color:#fff;max-width:400px;padding:20px;">'
-        + '<div style="font-size:48px;margin-bottom:16px;">&#9888;</div>'
-        + '<div style="font-family:Georgia,serif;font-size:18px;margin-bottom:12px;">Unable to Load Agreement</div>'
-        + '<div style="font-size:13px;opacity:.85;line-height:1.6;margin-bottom:20px;">' + msg + '</div>'
-        + '<div style="font-size:12px;opacity:.65;">Please check your link or contact your Texan Local representative.</div>'
-        + '</div>';
+      var box = pl.querySelector('div');
+      if(box){
+        box.innerHTML = '<div style="font-size:40px;margin-bottom:12px;">&#9888;</div>'
+          + '<div style="font-size:16px;font-weight:700;margin-bottom:10px;">Unable to Load</div>'
+          + '<div style="font-size:12px;opacity:.85;line-height:1.6;">' + msg + '</div>';
+      }
     }
   }
 }
