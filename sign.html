@@ -581,8 +581,12 @@ async function loadSession(){
       return;
     }
     window._sessionData = data;
-    document.getElementById('page-loading').style.display='none';
+    console.log('loadSession success, status:', data.status, 'hiding loader...');
+    var pl = document.getElementById('page-loading');
+    if(pl){ pl.style.display='none'; pl.style.visibility='hidden'; }
+    console.log('showing verify gate...');
     showVerifyGate();
+    console.log('verify gate shown');
   } catch(err){
     // Show error inside the loading overlay instead of spinning forever
     var msg = err.name === 'AbortError'
