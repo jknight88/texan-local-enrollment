@@ -1007,26 +1007,28 @@ function fallbackEmail(d){
 // ── REP-MODE: COLLECT & SEND ─────────────────────────────────────────
 function validateZones(){
   var errors = [];
-  // Check each zone row - only validate if any field in that row has been touched
-  document.querySelectorAll('table.ztbl tbody tr, table tbody tr:has(.ri)').forEach(function(row){
+  document.querySelectorAll('tr').forEach(function(row){
     var prod  = row.querySelector('.psel');
     var month = row.querySelector('.msel');
     var rate  = row.querySelector('.ri');
-    if(!prod && !month && !rate) return; // not a zone row
+    // Skip rows that aren't zone rows
+    if(!prod || !month || !rate) return;
 
-    var hasProduct = prod  && prod.value;
-    var hasMonth   = month && month.value;
-    var hasRate    = rate  && parseFloat(rate.value) > 0;
-    var hasAny     = hasProduct || hasMonth || hasRate;
+    var hasProduct = !!prod.value;
+    var hasMonth   = !!month.value;
+    var hasRate    = parseFloat(rate.value) > 0;
+    var filledCount = (hasProduct?1:0) + (hasMonth?1:0) + (hasRate?1:0);
 
-    // Only validate if at least one field is touched
-    if(!hasAny) return;
+    // All empty = fine. All three filled = fine. Partial = error.
+    if(filledCount === 0 || filledCount === 3) return;
 
     var zone = row.querySelector('.zn');
     var name = zone ? zone.textContent.trim() : 'a zone';
-
-    if(!hasProduct) errors.push('Zone ' + name + ': please select a product type.');
-    if(!hasRate)    errors.push('Zone ' + name + ': please enter a rate.');
+    var missing = [];
+    if(!hasProduct) missing.push('product type');
+    if(!hasMonth)   missing.push('start month');
+    if(!hasRate)    missing.push('rate');
+    errors.push('Zone ' + name + ': missing ' + missing.join(' and ') + '.');
   });
   return errors;
 }
