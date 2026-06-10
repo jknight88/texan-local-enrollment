@@ -514,6 +514,11 @@ function validate(){
   return ok;
 }
 function openInPerson(){
+  if(!document.getElementById('rep-select').value){
+    alert('Please select a Company Rep (JAK or DTA) before signing in person.');
+    document.getElementById('rep-select').focus();
+    return;
+  }
   var biz  = document.getElementById('biz-name').value.trim();
   var addr = document.getElementById('f-addr').value.trim();
   var term = document.querySelector('input[name=term]:checked');
@@ -1022,7 +1027,16 @@ function collectRepFormData() {
   var term = document.querySelector('input[name=term]:checked');
   // Collect zone data (non-sensitive)
   var zones = [];
-  document.querySelectorAll('.ri').forEach(function(el,i){ if(parseFloat(el.value)>0) zones.push({id:el.id,rate:el.value}); });
+  document.querySelectorAll('.ri').forEach(function(el,i){
+    if(parseFloat(el.value)>0){
+      // Walk up to the row and grab zone name + product
+      var row = el.closest('tr');
+      var zoneName = row ? (row.querySelector('.zn') ? row.querySelector('.zn').textContent.trim() : el.id) : el.id;
+      var prodSel  = row ? row.querySelector('.psel') : null;
+      var product  = prodSel ? prodSel.value : '';
+      zones.push({id:el.id, zoneName:zoneName, product:product, rate:el.value});
+    }
+  });
   return {
     bizName:  document.getElementById('biz-name').value.trim(),
     dba:      document.querySelector('input[placeholder*="Doing business"]') ? document.querySelector('input[placeholder*="Doing business"]').value.trim() : '',
