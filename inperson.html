@@ -297,6 +297,15 @@ canvas.sp{height:120px!important;cursor:crosshair;}
 </head>
 <body style="padding-top:72px;">
 
+<!-- PAGE LOADING STATE -->
+<div id="page-loading" style="position:fixed;inset:0;background:rgba(0,32,91,.97);z-index:9998;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;color:#fff;">
+    <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1.2rem;"></div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;">The Texan Local</div>
+    <div style="font-size:13px;opacity:.75;">Loading enrollment&hellip;</div>
+  </div>
+</div>
+
 <!-- CONSENT GATE -->
 <div id="consent-gate" style="position:fixed;inset:0;background:rgba(0,32,91,.97);z-index:9990;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;border-radius:8px;max-width:520px;width:100%;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4);">
@@ -506,6 +515,7 @@ var _sigCtx      = null;  // holds canvas context after reinit
 window.addEventListener('load', function(){
   var raw = sessionStorage.getItem('inperson_form');
   if(!raw){
+    document.getElementById('page-loading').style.display='none';
     alert('No form data found. Please go back and fill out the enrollment form first.');
     window.location.href = '/';
     return;
@@ -516,6 +526,10 @@ window.addEventListener('load', function(){
   var ds = (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
   var dtEl = document.getElementById('dt-signed');
   if(dtEl) dtEl.value = ds;
+  // Hide loading overlay now that data is loaded
+  var pl = document.getElementById('page-loading');
+  if(pl) pl.style.display = 'none';
+
   // Set totals from saved form data
   if(_formData.subtotal){   var el=document.getElementById('d-sub');   if(el) el.textContent=_formData.subtotal; }
   if(_formData.firstMonth){ var el=document.getElementById('d-first'); if(el) el.textContent=_formData.firstMonth; }
@@ -557,12 +571,11 @@ function buildSummary(d){
     var badge=document.getElementById('hdr-rep-badge');
     if(badge){badge.textContent='Rep: '+d.rep;badge.style.display='inline-block';}
   }
-  document.getElementById('enrollment-summary').innerHTML = html2;
-}
   if(d.rep){
     var badge=document.getElementById('hdr-rep-badge');
     if(badge){badge.textContent='Rep: '+d.rep;badge.style.display='inline-block';}
   }
+  document.getElementById('enrollment-summary').innerHTML = html2;
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
