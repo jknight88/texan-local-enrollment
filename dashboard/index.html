@@ -491,10 +491,14 @@ function saveEdit(){
     term:termVal, zones:zones
   };
   fetch('/api/updateForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,formData:formData})})
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data.ok){ closeModal('edit-modal'); loadData(); }
-      else{ document.getElementById('edit-err').textContent=data.error||'Save failed.'; document.getElementById('edit-err').style.display='block'; }
+    .then(function(r){
+      return r.text().then(function(t){ return {status:r.status, text:t}; });
+    })
+    .then(function(result){
+      var data;
+      try{ data=JSON.parse(result.text); }catch(e){ data={error:'Server error ('+result.status+'): '+result.text.substring(0,100)}; }
+      if(result.status===200 && data.ok){ closeModal('edit-modal'); loadData(); }
+      else{ document.getElementById('edit-err').textContent=data.error||'Save failed ('+result.status+').'; document.getElementById('edit-err').style.display='block'; }
     }).catch(function(e){ document.getElementById('edit-err').textContent='Error: '+e.message; document.getElementById('edit-err').style.display='block'; });
 }
 
@@ -512,10 +516,14 @@ function confirmDelete(){
   var id=document.getElementById('del-session-id').value;
   var isSigned=document.getElementById('del-is-signed').value==='1';
   fetch('/api/deleteForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,force:true})})
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data.ok){ closeModal('del-modal'); loadData(); }
-      else{ document.getElementById('del-err').textContent=data.error||'Delete failed.'; document.getElementById('del-err').style.display='block'; }
+    .then(function(r){
+      return r.text().then(function(t){ return {status:r.status, text:t}; });
+    })
+    .then(function(result){
+      var data;
+      try{ data=JSON.parse(result.text); }catch(e){ data={error:'Server error ('+result.status+'): '+result.text.substring(0,100)}; }
+      if(result.status===200 && data.ok){ closeModal('del-modal'); loadData(); }
+      else{ document.getElementById('del-err').textContent=data.error||'Delete failed ('+result.status+').'; document.getElementById('del-err').style.display='block'; }
     }).catch(function(e){ document.getElementById('del-err').textContent='Error: '+e.message; document.getElementById('del-err').style.display='block'; });
 }
 
