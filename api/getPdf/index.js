@@ -85,44 +85,54 @@ module.exports = async function(context, req) {
 <title>Enrollment Agreement - ${record.bizName}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
   *{ box-sizing:border-box; margin:0; padding:0; }
-  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:9.5pt; background:#fff; }
-  @page{ margin:0.45in; size:letter portrait; }
-  @media screen{ body{ max-width:760px; margin:0 auto; padding:16px; } }
+  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:8pt; background:#fff; }
+  @page{
+    margin:0.35in;
+    size:letter portrait;
+    /* Suppress browser URL and date headers/footers */
+    margin-top: 0.35in;
+    margin-bottom: 0.35in;
+  }
+  @media screen{
+    html{ background:#c8ccd4; }
+    body{ max-width:760px; margin:0 auto; padding:20px; background:#fff; box-shadow:0 2px 16px rgba(0,0,0,.18); }
+  }
   @media print{
     .print-btn{ display:none !important; }
-    @page{ margin:0.45in; }
-    /* Suppress browser-added URL and timestamp headers/footers */
-    html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    html{ background:#fff !important; }
+    body{ background:#fff !important; box-shadow:none !important; }
   }
   .page{ page-break-after:always; }
   .page:last-child{ page-break-after:avoid; }
-  .hdr{ background:#00205B; padding:8pt 14pt; border-bottom:4pt solid #BF0D3E; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .hdr-title{ color:#fff; font-family:'Playfair Display',serif; font-size:13pt; }
-  .hdr-sub{ color:rgba(255,255,255,.7); font-size:8pt; margin-top:1pt; }
-  .section{ padding:7pt 13pt; border-bottom:1pt solid #dde2ef; }
-  .sec-title{ background:#00205B; color:#fff; font-size:7pt; font-weight:700; letter-spacing:1pt; text-transform:uppercase; padding:3pt 13pt; margin:0 -13pt 6pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:5pt; }
-  .field label{ display:block; font-size:7pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.4pt; margin-bottom:1pt; }
-  .field .val{ font-size:9pt; border-bottom:1pt solid #c8cdd8; padding:2pt 0; min-height:13pt; }
-  table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:6pt; }
-  table.dtbl td{ padding:5pt 8pt; border:1pt solid #c8cdd8; font-size:9pt; }
+  .hdr{ background:#00205B; padding:6pt 12pt; border-bottom:3pt solid #BF0D3E; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .hdr-title{ color:#fff; font-family:'Playfair Display',serif; font-size:11pt; }
+  .hdr-sub{ color:rgba(255,255,255,.7); font-size:7pt; margin-top:1pt; }
+  .section{ padding:4pt 10pt; border-bottom:1pt solid #dde2ef; }
+  .sec-title{ background:#00205B; color:#fff; font-size:6.5pt; font-weight:700; letter-spacing:.8pt; text-transform:uppercase; padding:2pt 10pt; margin:0 -10pt 5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:4pt; }
+  .field label{ display:block; font-size:6.5pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:1pt; }
+  .field .val{ font-size:8pt; border-bottom:0.75pt solid #c8cdd8; padding:1pt 0; min-height:11pt; }
+  table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
+  table.dtbl td{ padding:3pt 6pt; border:0.75pt solid #c8cdd8; font-size:8pt; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
-  table.zones{ width:100%; border-collapse:collapse; font-size:8.5pt; margin-bottom:5pt; }
-  table.zones th{ background:#00205B; color:#fff; padding:3pt 6pt; font-size:7.5pt; text-align:left; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .totals-box{ border:1.5pt solid #00205B; border-radius:2pt; overflow:hidden; margin:5pt 0; }
-  .total-row{ display:flex; justify-content:space-between; align-items:center; padding:4pt 9pt; border-bottom:1pt solid #dde2ef; font-size:9pt; }
+  table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; }
+  table.zones th{ background:#00205B; color:#fff; padding:2.5pt 5pt; font-size:7pt; text-align:left; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  table.zones td{ padding:2.5pt 5pt; border:0.75pt solid #c8cdd8; }
+  .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:4pt 0; }
+  .total-row{ display:flex; justify-content:space-between; align-items:center; padding:3pt 8pt; border-bottom:0.75pt solid #dde2ef; font-size:8pt; }
   .total-row:last-child{ border-bottom:none; }
   .total-row.blue{ background:#00205B; color:#fff; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .total-row.pink{ background:#fef0f4; font-weight:700; }
-  .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14pt; padding:7pt 13pt; }
-  .sig-block label{ font-size:7pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.4pt; display:block; margin-bottom:4pt; }
-  .sig-line{ border-bottom:1.5pt solid #1a1a2e; height:28pt; margin-bottom:3pt; }
-  .sig-sub{ font-size:8pt; color:#4a4f5e; margin-top:2pt; }
-  .ftr{ background:#00205B; border-top:3pt solid #BF0D3E; padding:5pt 13pt; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .ftr span{ color:rgba(255,255,255,.65); font-size:7pt; }
-  .conf-bar{ background:#BF0D3E; color:#fff; padding:4pt 8pt; font-size:7pt; font-weight:700; text-transform:uppercase; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .esign-bar{ background:#1a5c1a; color:#fff; padding:4pt 8pt; font-size:7pt; font-weight:700; text-transform:uppercase; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12pt; padding:5pt 10pt; }
+  .sig-block label{ font-size:6.5pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; display:block; margin-bottom:3pt; }
+  .sig-line{ border-bottom:1.25pt solid #1a1a2e; height:24pt; margin-bottom:2pt; }
+  .sig-sub{ font-size:7.5pt; color:#4a4f5e; margin-top:2pt; }
+  .ftr{ background:#00205B; border-top:2.5pt solid #BF0D3E; padding:4pt 10pt; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .ftr span{ color:rgba(255,255,255,.65); font-size:6.5pt; }
+  .conf-bar{ background:#BF0D3E; color:#fff; padding:3pt 6pt; font-size:6.5pt; font-weight:700; text-transform:uppercase; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .esign-bar{ background:#1a5c1a; color:#fff; padding:3pt 6pt; font-size:6.5pt; font-weight:700; text-transform:uppercase; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .print-btn{ position:fixed; top:14px; right:14px; background:#00205B; color:#fff; border:none; padding:9px 18px; border-radius:4px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; z-index:999; }
 </style>
 </head>
@@ -206,19 +216,19 @@ module.exports = async function(context, req) {
   <!-- FULL T&C -->
   <div class="section" style="padding:6pt 13pt;">
     <div class="sec-title">Terms &amp; Conditions</div>
-    <p style="font-size:8.5pt;line-height:1.6;margin-bottom:5pt;text-align:justify;">This Texan Local Advertising Enrollment Agreement (&ldquo;Agreement&rdquo;) is entered into by and between Knight Dynamic Solutions, LLC d/b/a Texan Local (&ldquo;Company&rdquo;) and the business identified in this Agreement (&ldquo;Client&rdquo;). In consideration of the fees set forth herein, Company shall provide advertising placement and related marketing services selected by Client within Texan Local publications and associated distribution channels. Distribution quantities, publication dates, placement positions, and circulation figures are estimates and targets only and may vary from time to time based upon operational, printing, mailing, market, or business considerations. Client acknowledges that Company makes no guarantee regarding leads, sales, revenue, customer acquisition, return on investment, or advertising performance.</p>
-    <p style="font-size:8.5pt;line-height:1.6;margin-bottom:5pt;text-align:justify;">Client agrees to the pricing, products, zones, and term selected in this Agreement and acknowledges that it is entering into a fixed-term advertising commitment. All invoices shall be due and payable when billed. Client authorizes Knight Dynamic Solutions, LLC to charge any credit card, debit card, ACH account, checking account, or other payment method provided by Client for all amounts due, including recurring monthly charges, setup fees, renewal terms, late fees, and any authorized additional services. Monthly invoices shall be charged on or about the twentieth (20th) day of each month, or the preceding business day if the twentieth falls on a weekend or holiday. This authorization shall remain in effect throughout the initial term, any renewal term, and until all amounts owed have been paid in full. Any invoice not paid within thirty (30) days shall incur a late fee of $50.00 per month. Client shall not withhold, offset, reduce, dispute, or delay payment based upon advertising performance, lead volume, response rates, ad approval delays, or perceived return on investment. Full payment remains due regardless of whether Client utilizes all advertising opportunities available under this Agreement.</p>
-    <p style="font-size:8.5pt;line-height:1.6;margin-bottom:5pt;text-align:justify;">This Agreement shall automatically renew for an additional term equal to the original contract term, with the same products, zones, and pricing, unless either party provides written notice of non-renewal at least sixty (60) days prior to expiration. Company will make reasonable efforts to replicate premium placements during renewal terms when available; however, exact placement dates and positions are not guaranteed. Client may cancel only by providing written notice at least thirty (30) days prior to the next scheduled ad approval deadline. Early termination fee equals fifty percent (50%) of the remaining contract value, together with any outstanding balances then due. All such amounts shall become immediately due and payable upon notice of cancellation.</p>
-    <p style="font-size:8.5pt;line-height:1.6;margin-bottom:5pt;text-align:justify;">In the event of nonpayment, chargeback, returned payment, breach, or other default, Company may immediately suspend all services without further notice. Such suspension shall not relieve Client of any payment obligations. Upon default, all unpaid amounts, termination fees, and charges shall immediately become due and payable. In the event of a chargeback, payment dispute, returned ACH, insufficient funds, revoked payment authorization, or other payment reversal initiated by Client, such action constitutes a default and all recovery costs shall be immediately due and payable by Client.</p>
-    <p style="font-size:8.5pt;line-height:1.6;margin-bottom:5pt;text-align:justify;">Client shall receive reasonable opportunities to review and approve advertising materials prior to publication. If Client fails to provide approvals, revisions, artwork, or required materials by Company&rsquo;s stated deadlines, Company may publish the most recently approved version, utilize materials previously supplied, or omit the advertisement without relieving Client of any payment obligations. The individual signing personally, unconditionally, and irrevocably guarantees payment and performance of all obligations. Client and guarantor agree to reimburse Company for all enforcement costs including reasonable attorney&rsquo;s fees, court costs, filing fees, collection agency fees, and other collection-related expenses.</p>
-    <p style="font-size:8.5pt;line-height:1.6;text-align:justify;">This Agreement constitutes the entire agreement between the parties. Electronic signatures shall be deemed original signatures and shall be fully binding and enforceable under the federal ESIGN Act and UETA. Company shall not be liable for delays caused by events beyond its reasonable control. This Agreement shall be governed by the laws of the State of Texas; exclusive venue for any dispute shall be the state courts located in Comal County, Texas. The prevailing party in any action arising from this Agreement shall be entitled to recover its reasonable attorney&rsquo;s fees and costs.</p>
+    <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">This Texan Local Advertising Enrollment Agreement (&ldquo;Agreement&rdquo;) is entered into by and between Knight Dynamic Solutions, LLC d/b/a Texan Local (&ldquo;Company&rdquo;) and the business identified in this Agreement (&ldquo;Client&rdquo;). In consideration of the fees set forth herein, Company shall provide advertising placement and related marketing services selected by Client within Texan Local publications and associated distribution channels. Distribution quantities, publication dates, placement positions, and circulation figures are estimates and targets only and may vary from time to time based upon operational, printing, mailing, market, or business considerations. Client acknowledges that Company makes no guarantee regarding leads, sales, revenue, customer acquisition, return on investment, or advertising performance.</p>
+    <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">Client agrees to the pricing, products, zones, and term selected in this Agreement and acknowledges that it is entering into a fixed-term advertising commitment. All invoices shall be due and payable when billed. Client authorizes Knight Dynamic Solutions, LLC to charge any credit card, debit card, ACH account, checking account, or other payment method provided by Client for all amounts due, including recurring monthly charges, setup fees, renewal terms, late fees, and any authorized additional services. Monthly invoices shall be charged on or about the twentieth (20th) day of each month, or the preceding business day if the twentieth falls on a weekend or holiday. This authorization shall remain in effect throughout the initial term, any renewal term, and until all amounts owed have been paid in full. Any invoice not paid within thirty (30) days shall incur a late fee of $50.00 per month. Client shall not withhold, offset, reduce, dispute, or delay payment based upon advertising performance, lead volume, response rates, ad approval delays, or perceived return on investment. Full payment remains due regardless of whether Client utilizes all advertising opportunities available under this Agreement.</p>
+    <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">This Agreement shall automatically renew for an additional term equal to the original contract term, with the same products, zones, and pricing, unless either party provides written notice of non-renewal at least sixty (60) days prior to expiration. Company will make reasonable efforts to replicate premium placements during renewal terms when available; however, exact placement dates and positions are not guaranteed. Client may cancel only by providing written notice at least thirty (30) days prior to the next scheduled ad approval deadline. Early termination fee equals fifty percent (50%) of the remaining contract value, together with any outstanding balances then due. All such amounts shall become immediately due and payable upon notice of cancellation.</p>
+    <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">In the event of nonpayment, chargeback, returned payment, breach, or other default, Company may immediately suspend all services without further notice. Such suspension shall not relieve Client of any payment obligations. Upon default, all unpaid amounts, termination fees, and charges shall immediately become due and payable. In the event of a chargeback, payment dispute, returned ACH, insufficient funds, revoked payment authorization, or other payment reversal initiated by Client, such action constitutes a default and all recovery costs shall be immediately due and payable by Client.</p>
+    <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">Client shall receive reasonable opportunities to review and approve advertising materials prior to publication. If Client fails to provide approvals, revisions, artwork, or required materials by Company&rsquo;s stated deadlines, Company may publish the most recently approved version, utilize materials previously supplied, or omit the advertisement without relieving Client of any payment obligations. The individual signing personally, unconditionally, and irrevocably guarantees payment and performance of all obligations. Client and guarantor agree to reimburse Company for all enforcement costs including reasonable attorney&rsquo;s fees, court costs, filing fees, collection agency fees, and other collection-related expenses.</p>
+    <p style="font-size:7.5pt;line-height:1.5;text-align:justify;">This Agreement constitutes the entire agreement between the parties. Electronic signatures shall be deemed original signatures and shall be fully binding and enforceable under the federal ESIGN Act and UETA. Company shall not be liable for delays caused by events beyond its reasonable control. This Agreement shall be governed by the laws of the State of Texas; exclusive venue for any dispute shall be the state courts located in Comal County, Texas. The prevailing party in any action arising from this Agreement shall be entitled to recover its reasonable attorney&rsquo;s fees and costs.</p>
   </div>
 
   <!-- ESIGN -->
   <div style="padding:0 13pt 5pt;">
     <div class="esign-bar" style="border-radius:2pt 2pt 0 0;">ESIGN / UETA Compliance Record</div>
     <table class="dtbl" style="margin-top:0;">
-      <tr><td>Consent</td><td style="font-size:8pt;">${s.consentText||'I agree to conduct this transaction using electronic records and signatures.'}</td></tr>
+      <tr><td>Consent</td><td style="font-size:7.5pt;">${s.consentText||'I agree to conduct this transaction using electronic records and signatures.'}</td></tr>
       <tr><td>Consent Given</td><td>${new Date(s.consentAt||record.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
       ${record.verifiedAt ? `<tr><td>Email Verified</td><td>${new Date(record.verifiedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>` : ''}
       <tr><td>IP Address</td><td style="font-family:monospace;font-size:8pt;">${s.ipAddress||'In-Person'}</td></tr>
@@ -227,7 +237,7 @@ module.exports = async function(context, req) {
   </div>
 
   <!-- SIGNATURES -->
-  <div class="sig-grid">
+  <div class="sig-grid" style="padding:4pt 10pt;">
     <div>
       <div class="sig-block">
         <label>Authorized Agent Signature</label>
@@ -256,11 +266,19 @@ module.exports = async function(context, req) {
 </div>
 
 <script>
-// Suppress URL/timestamp in print headers/footers via CSS is handled by @page
-// This script ensures clean print
 window.addEventListener('load', function(){
+  // Inject print styles to suppress URL/timestamp and ensure clean output
   var style = document.createElement('style');
-  style.textContent = '@page { margin: 0.45in; } @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }';
+  style.textContent = [
+    '@page { margin: 0.35in; size: letter portrait; }',
+    '@media print {',
+    '  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
+    '  html { background: #fff !important; }',
+    '  .print-btn { display: none !important; }',
+    '  /* Chrome/Edge: suppress URL and date in headers/footers */',
+    '  @page { margin-top: 0.35in; margin-bottom: 0.35in; }',
+    '}'
+  ].join(' ');
   document.head.appendChild(style);
 });
 </script>
