@@ -674,20 +674,8 @@ function enterSigningMode(){
   // Unlock payment fields (active tab only)
   refreshPayFields();
 
-  // Unlock initials - only from active payment tab + T&C + summary
-  var iiIdx = 0;
-  document.querySelectorAll('.ii').forEach(function(el){
-    var inCC  = el.closest('#pp-cc');
-    var inACH = el.closest('#pp-ach');
-    var ccOn  = document.getElementById('pp-cc').classList.contains('on');
-    if(inCC && !ccOn) return;
-    if(inACH && ccOn) return;
-    var fid = 'ii-'+iiIdx++;
-    el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1';
-    el.placeholder='INIT.';
-    hlField(el,false); regField(fid,el);
-    el.addEventListener('input',function(){ markField(fid, el.value.trim().length>0); });
-  });
+  // Initials are registered via refreshInitials() called from refreshPayFields
+  // so they update correctly when payment tab switches
 
   // Unlock print name and title
   var snEl = document.getElementById('f-signame');
@@ -832,9 +820,47 @@ function refreshPayFields(){
   inactive.forEach(function(id){
     var el=document.getElementById(id); if(!el) return;
     el.disabled=true; el.style.pointerEvents='none'; el.style.opacity='0.35';
-    el.style.outline='none'; el.style.background='';
+    el.style.outline='none'; el.style.background=''; el.style.borderBottom='';
+    var fw=document.getElementById('fw-'+id.replace('f-',''));
+    if(fw) fw.classList.remove('fe');
   });
+  refreshInitials();
   checkAllSigned();
+}
+
+function refreshInitials(){
+  // Remove old ii registrations
+  Object.keys(SIGN_FIELDS).forEach(function(k){ if(k.indexOf('ii-')===0) delete SIGN_FIELDS[k]; });
+  var ccOn = document.getElementById('pp-cc') && document.getElementById('pp-cc').classList.contains('on');
+  var iiIdx = 0;
+  document.querySelectorAll('.ii').forEach(function(el){
+    var inCC  = el.closest('#pp-cc');
+    var inACH = el.closest('#pp-ach');
+    // Skip initials in inactive payment panel
+    if(inCC && !ccOn)  return;
+    if(inACH && ccOn)  return;
+    var fid = 'ii-'+iiIdx++;
+    el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1';
+    el.placeholder='INIT.';
+    // Only highlight if not already completed
+    if(!SIGN_FIELDS[fid] || !SIGN_FIELDS[fid].completed){
+      hlField(el, false);
+    }
+    regField(fid, el);
+    // Re-mark if already has value
+    if(el.value.trim().length > 0){
+      SIGN_FIELDS[fid].completed = true;
+      hlField(el, true);
+    }
+    // Remove old listeners by replacing element
+    var newEl = el.cloneNode(true);
+    el.parentNode.replaceChild(newEl, el);
+    newEl.disabled=false; newEl.style.pointerEvents='auto'; newEl.style.opacity='1';
+    newEl.placeholder='INIT.';
+    hlField(newEl, newEl.value.trim().length > 0);
+    SIGN_FIELDS[fid] = {el:newEl, completed: newEl.value.trim().length > 0};
+    newEl.addEventListener('input', function(){ markField(fid, newEl.value.trim().length > 0); });
+  });
 }
 
 function checkAllSigned(){
