@@ -554,7 +554,15 @@ async function loadSession(){
     // trackOpen - don't block on failure
     fetch('/api/trackOpen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID})}).catch(function(){});
 
-    var resp = await fetch('/api/getForm?id='+SESSION_ID);
+    // 15-second timeout
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function(){ controller.abort(); }, 15000);
+    var resp;
+    try {
+      resp = await fetch('/api/getForm?id='+SESSION_ID, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     var rawText = await resp.text();
     var data;
     try {
@@ -577,12 +585,18 @@ async function loadSession(){
     showVerifyGate();
   } catch(err){
     // Show error inside the loading overlay instead of spinning forever
+    var msg = err.name === 'AbortError'
+      ? 'The request timed out. The server may be starting up — please wait 30 seconds and try your link again.'
+      : err.message;
+    var msg = err.name === 'AbortError'
+      ? 'The request timed out. The server may be starting up — please wait 30 seconds and try your link again.'
+      : err.message;
     var pl = document.getElementById('page-loading');
     if(pl){
       pl.innerHTML = '<div style="text-align:center;color:#fff;max-width:400px;padding:20px;">'
         + '<div style="font-size:48px;margin-bottom:16px;">&#9888;</div>'
-        + '<div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:12px;">Unable to Load Agreement</div>'
-        + '<div style="font-size:13px;opacity:.85;line-height:1.6;margin-bottom:20px;">' + err.message + '</div>'
+        + '<div style="font-family:Georgia,serif;font-size:18px;margin-bottom:12px;">Unable to Load Agreement</div>'
+        + '<div style="font-size:13px;opacity:.85;line-height:1.6;margin-bottom:20px;">' + msg + '</div>'
         + '<div style="font-size:12px;opacity:.65;">Please check your link or contact your Texan Local representative.</div>'
         + '</div>';
     }
