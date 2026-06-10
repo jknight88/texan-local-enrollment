@@ -33,8 +33,24 @@ function parsePayRows(payMethod, payDetail) {
 module.exports = async function(context, req) {
   if (req.method === "OPTIONS") { context.res={status:200}; return; }
 
-  // Auth check
-  if (req.query.key !== DASHBOARD_KEY) {
+  // Auth check - accept dashboard key OR a per-document pdfToken
+  const authKey      = req.query.key;
+  const pdfTokenReq  = req.query.pdfToken;
+  let authorized     = (authKey === DASHBOARD_KEY);
+
+  if (!authorized && pdfTokenReq) {
+    // Verify pdfToken against the record
+    try {
+      const blobSvcAuth   = BlobServiceClient.fromConnectionString(STORAGE_CONN);
+      const containerAuth = blobSvcAuth.getContainerClient(CONTAINER);
+      const blobAuth      = containerAuth.getBlockBlobClient(`${req.query.id}.json`);
+      const dlAuth        = await blobAuth.downloadToBuffer();
+      const recordAuth    = JSON.parse(dlAuth.toString());
+      authorized = (recordAuth.pdfToken === pdfTokenReq);
+    } catch(e) { authorized = false; }
+  }
+
+  if (!authorized) {
     context.res = { status:401, body:"Unauthorized" }; return;
   }
 
@@ -146,9 +162,10 @@ module.exports = async function(context, req) {
   <!-- Package Selection -->
   <div class="section">
     <div class="section-title">Package Selection</div>
-    <div style="display:flex;align-items:center;gap:8pt;margin-bottom:7pt;">
-      <span style="font-size:8.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Term:</span>
-      <span style="font-size:11pt;font-weight:700;color:#00205B;">${fd.term||''}</span>
+    <div style="display:flex;align-items:center;gap:16pt;margin-bottom:7pt;flex-wrap:wrap;">
+      <div><span style="font-size:8.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Term:</span>
+      <span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.term||''}</span></div>
+      ${fd.rep ? `<div><span style="font-size:8.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Sales Rep:</span><span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.rep}</span></div>` : ''}
     </div>
     ${zoneRows ? `<table class="zones"><thead><tr><th>Zone / Product</th><th style="text-align:right;">Rate/Mo</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:9pt;color:#888;margin-bottom:6pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:9pt;margin-top:4pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
