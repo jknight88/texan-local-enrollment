@@ -135,52 +135,34 @@ module.exports = async function(context, req) {
 
     // Email to rep
     const repHtml = `
-<div style="font-family:Arial,sans-serif;max-width:640px;color:#1a1a2e;">
-  <div style="background:#00205B;padding:18px 24px;border-bottom:4px solid #BF0D3E;">
-    <div style="font-size:20px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">&#10003; In-Person Enrollment — Signed &amp; Complete</div>
+<div style="font-family:Arial,sans-serif;max-width:520px;color:#1a1a2e;">
+  <div style="background:#00205B;padding:16px 22px;border-bottom:4px solid #BF0D3E;">
+    <div style="font-size:18px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">In-Person Enrollment — Signed</div>
   </div>
   <div style="padding:24px;background:#f5f7fa;">
-    <div style="background:#1a5c1a;color:#fff;padding:12px 16px;border-radius:5px;font-size:14px;font-weight:700;margin-bottom:20px;">
-      &#10003; IN-PERSON: ${fd.bizName} signed their enrollment agreement.
+    <div style="background:#1a5c1a;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
+      <div style="font-size:22px;margin-bottom:6px;">&#10003;</div>
+      <div style="font-size:15px;font-weight:700;">${fd.bizName} signed in person.</div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#00205B;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Client Details</td></tr>
-      ${row("Business", fd.bizName)}
-      ${row("Signing Method", "In-Person")}
-      ${row("Contact", fd.contact||'')}
-      ${row("Phone", fd.phone||'')}
-      ${row("Email", fd.clientEmail||'')}
-      ${row("Address", [fd.addr,fd.city,fd.state,fd.zip].filter(Boolean).join(', '))}
-      ${row("Signed By", body.sigName + (body.sigTitle ? ', '+body.sigTitle : ''))}
-      ${row("Signed", new Date(now).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("IP Address", fullIp)}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Signed By</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${body.sigName}${body.sigTitle ? ', ' + body.sigTitle : ''}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Business</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${fd.bizName}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Signed At</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${new Date(now).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Signing Method</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">In-Person</td></tr>
     </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#00205B;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Agreement Details</td></tr>
-      ${row("Term", fd.term||'')}
-      ${row("Subtotal", body.subtotal)}
-      ${row("First Month", body.firstMonth)}
-      ${row("Monthly Charge", body.monthly)}
-      ${row("Initials", body.initials)}
-      ${row("Notes", fd.notes||'')}
-    </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#BF0D3E;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Payment Information — CONFIDENTIAL</td></tr>
-      ${row("Payment Method", body.payMethod)}
-      ${payRows}
-    </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#1a5c1a;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">ESIGN Compliance</td></tr>
-      ${row("Consent Given", new Date(body.consentAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("Consent Text", "I agree to conduct this transaction using electronic records and signatures.")}
-      ${row("SHA-256 Audit Hash", `<span style="font-family:monospace;font-size:10px;word-break:break-all;">${auditHash}</span>`)}
-    </table>
-    <div style="text-align:center;"><a href="${BASE_URL}/dashboard" style="background:#00205B;color:#fff;padding:11px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View Dashboard</a></div>
+    <div style="text-align:center;margin-top:20px;">
+      <a href="${BASE_URL}/dashboard" style="background:#00205B;color:#fff;padding:11px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View Full Details in Dashboard &rarr;</a>
+    </div>
+    <p style="font-size:11px;color:#aaa;margin-top:18px;text-align:center;">Full payment info, audit trail, and signed document available in the dashboard.</p>
   </div>
 </div>`;
 
-    await fetch(`https://graph.microsoft.com/v1.0/users/${REP_EMAIL}/sendMail`, {
+        await fetch(`https://graph.microsoft.com/v1.0/users/${REP_EMAIL}/sendMail`, {
       method:"POST",
       headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
       body: JSON.stringify({
