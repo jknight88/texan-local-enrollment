@@ -1087,20 +1087,25 @@ async function submitSigned(){
     if(resp.ok&&data.ok){
       // Make overlay fully opaque - solid blocking completion screen
       var loadingOverlay = document.getElementById('sign-loading');
-      loadingOverlay.style.background = '#00205B';
+      loadingOverlay.style.background = 'rgba(0,32,91,.97)';
       loadingOverlay.style.zIndex = '99999';
       var loadingBox = loadingOverlay.querySelector('.sign-loading-box');
       if(loadingBox){
-        loadingBox.style.maxWidth = '460px';
-        loadingBox.style.padding = '2.5rem';
+        loadingBox.style.maxWidth = '480px';
+        loadingBox.style.padding = '2.5rem 2rem';
         loadingBox.style.textAlign = 'center';
         loadingBox.style.borderTop = '6px solid #BF0D3E';
+        loadingBox.style.background = '#fff';
+        loadingBox.style.borderRadius = '8px';
       }
-      document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:14px;">&#10003;</span>Agreement Signed!';
-      document.getElementById('loading-title').style.color = '#1a5c1a';
-      document.getElementById('loading-title').style.fontSize = '20px';
-      document.getElementById('loading-msg').innerHTML = '<strong style="color:#1a1a2e;font-size:15px;">Thank you!</strong><br><br><span style="color:#4a4f5e;font-size:13px;">This form has been sent back to Texan Local for signature and finalization. You will receive a finalized PDF copy once complete.</span>';
       document.querySelector('.spinner').style.display='none';
+      // Hide sign-banner to prevent NaN showing through
+      var sb = document.getElementById('sign-banner');
+      if(sb) sb.style.display = 'none';
+      document.getElementById('loading-title').style.fontSize = '18px';
+      document.getElementById('loading-title').style.color = '#00205B';
+      document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:10px;color:#2a7a2a;">&#10003;</span><span style="color:#00205B;">Agreement Signed!</span>';
+      document.getElementById('loading-msg').innerHTML = '<p style="color:#1a1a2e;font-size:14px;font-weight:600;margin-bottom:10px;">Thank you!</p><p style="color:#4a4f5e;font-size:13px;line-height:1.6;">This form has been sent back to Texan Local for signature and finalization. You will receive a finalized PDF copy once complete.</p>';
     } else {
       throw new Error(data.error||'Submit failed');
     }
