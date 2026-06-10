@@ -1014,18 +1014,25 @@ async function submitSigned(){
     var data = await resp.json();
     if(resp.ok && data.ok){
       // Solid completion screen
-      loading.style.background = 'rgba(0,32,91,.97)';
+      loading.style.background = 'rgba(0,0,0,.55)';
+      loading.style.zIndex = '99999';
+      document.body.style.overflow = 'hidden'; // disable scroll behind overlay
       var lbox = loading.querySelector('.sign-loading-box');
-      if(lbox){ lbox.style.background='#00205B'; lbox.style.borderTop='6px solid #BF0D3E'; lbox.style.maxWidth='480px'; }
+      if(lbox){
+        lbox.style.background = '#fff';
+        lbox.style.borderTop  = '6px solid #BF0D3E';
+        lbox.style.maxWidth   = '480px';
+        lbox.style.padding    = '2.5rem 2rem';
+        lbox.style.borderRadius = '8px';
+      }
       document.getElementById('load-spinner').style.display='none';
-      document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:14px;color:#2a9a2a;">&#10003;</span>Agreement Signed!';
-      document.getElementById('loading-title').style.color='#fff'; document.getElementById('loading-title').style.fontSize='20px';
-      document.getElementById('loading-msg').innerHTML = '<p style="color:rgba(255,255,255,.9);font-size:14px;font-weight:600;margin-bottom:12px;">Thank you! The enrollment agreement has been completed.</p>'
-        +'<button onclick="window.location.href='/'" style="background:var(--rd);color:#fff;border:none;padding:11px 24px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;">Start New Enrollment</button>';
+      document.getElementById('loading-title').style.color  = '#00205B';
+      document.getElementById('loading-title').style.fontSize = '20px';
+      document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:14px;color:#2a9a2a;">&#10003;</span><span style="color:#00205B;">Agreement Signed!</span>';
+      document.getElementById('loading-msg').innerHTML = '<p style="color:#00205B;font-size:14px;font-weight:600;margin-bottom:12px;">Thank you! The enrollment agreement has been completed.</p>'
+        +'<button onclick="window.location.href=\'/\'" style="background:#BF0D3E;color:#fff;border:none;padding:11px 24px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Start New Enrollment</button>';
       var banner=document.getElementById('ip-banner');
       if(banner) banner.style.display='none';
-      document.getElementById('complete-btn').textContent='Done';
-      document.getElementById('complete-btn').style.background='#1a5c1a';
       sessionStorage.removeItem('inperson_form');
     } else {
       throw new Error(data.error||'Submit failed');
