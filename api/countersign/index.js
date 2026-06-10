@@ -1,4 +1,4 @@
-// GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page
+/ GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page
 // POST /api/countersign  { sessionId, repSigName, repSigTitle, key } → finalizes agreement, emails client PDF link
 const { BlobServiceClient } = require("@azure/storage-blob");
 const crypto              = require("crypto");
@@ -65,9 +65,6 @@ module.exports = async function(context, req) {
   try {
     const body = req.body;
     if (!body || !body.sessionId) { context.res={status:400,body:{error:"Missing sessionId"}}; return; }
-    if (body.key !== DASHBOARD_KEY && body.key !== body.countersignToken) {
-      context.res={status:401,body:{error:"Unauthorized"}}; return;
-    }
 
     const blobSvc   = BlobServiceClient.fromConnectionString(STORAGE_CONN);
     const container = blobSvc.getContainerClient(CONTAINER);
@@ -75,8 +72,14 @@ module.exports = async function(context, req) {
     const dl        = await blob.downloadToBuffer();
     const record    = JSON.parse(dl.toString());
 
+    // Accept dashboard key OR the countersign token stored on the record
+    const isAuthorized = (body.key === DASHBOARD_KEY) || (body.key && body.key === record.countersignToken);
+    if (!isAuthorized) {
+      context.res={status:401,body:{error:"Unauthorized"}}; return;
+    }
+
     if (record.status !== "client_signed") {
-      context.res={status:400,body:{error:"Agreement not awaiting countersignature"}}; return;
+      context.res={status:400,body:{error:"Agreement not awaiting countersignature. Status: "+record.status}}; return;
     }
 
     const now = new Date().toISOString();
