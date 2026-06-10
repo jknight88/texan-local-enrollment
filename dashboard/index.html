@@ -171,8 +171,12 @@ tbody td{padding:8px;vertical-align:middle;}
       <button class="modal-close" onclick="closeModal('del-modal')">&times;</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:13px;color:#333;margin-bottom:1.2rem;line-height:1.6;">Delete enrollment for <strong id="del-bizname"></strong>? This cannot be undone.</p>
+      <p style="font-size:13px;color:#333;margin-bottom:.8rem;line-height:1.6;">Delete enrollment for <strong id="del-bizname"></strong>? This cannot be undone.</p>
+      <div id="del-signed-warn" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px 14px;margin-bottom:.8rem;font-size:12px;color:#555;">
+        <strong>&#9888; Warning:</strong> This agreement has already been <strong>signed</strong>. Deleting it will permanently remove the signed record and audit trail. Are you absolutely sure?
+      </div>
       <input type="hidden" id="del-session-id">
+      <input type="hidden" id="del-is-signed">
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeModal('del-modal')" style="padding:9px 18px;border-radius:4px;border:1.5px solid var(--br);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--md);">Cancel</button>
         <button onclick="confirmDelete()" style="padding:9px 22px;border-radius:4px;border:none;background:#e53935;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Delete</button>
@@ -255,8 +259,9 @@ function handleBtn(el) {
   var biz    = el.getAttribute('data-biz') || '';
   var action = el.getAttribute('data-act');
   if(action === 'view') viewDoc(sid);
+  else if(action === 'pdf')  window.open('/api/getPdf?id='+sid+'&key='+encodeURIComponent(DASH_KEY), '_blank');
   else if(action === 'edit') editForm(sid);
-  else if(action === 'del') deleteForm(sid, biz);
+  else if(action === 'del')  deleteForm(sid, biz, el.getAttribute('data-signed'));
 }
 
 function renderStats() {
@@ -292,10 +297,9 @@ function renderTable() {
     var bname = esc(r.bizName||'');
     var actions = '<div style="display:flex;gap:3px;flex-wrap:wrap;">';
     if(isSigned) actions += '<button class="btn-sm btn-view" data-sid="'+sid+'" data-act="view" onclick="handleBtn(this)">&#128196; View</button>';
-    if(!isSigned){
-      actions += '<button class="btn-sm btn-edit" data-sid="'+sid+'" data-act="edit" onclick="handleBtn(this)">&#9998; Edit</button>';
-      actions += '<button class="btn-sm btn-del" data-sid="'+sid+'" data-biz="'+bname+'" data-act="del" onclick="handleBtn(this)">&#128465;</button>';
-    }
+    if(isSigned) actions += '<button class="btn-sm" style="background:#2a7a2a;color:#fff;" data-sid="'+sid+'" data-act="pdf" onclick="handleBtn(this)">&#128438; PDF</button>';
+    actions += '<button class="btn-sm btn-edit" data-sid="'+sid+'" data-act="edit" onclick="handleBtn(this)">&#9998; Edit</button>';
+    actions += '<button class="btn-sm btn-del" data-sid="'+sid+'" data-biz="'+bname+'" data-signed="'+(isSigned?'1':'0')+'" data-act="del" onclick="handleBtn(this)">&#128465;</button>';
     actions += '</div>';
     html += '<tr>'
       +'<td><strong>'+esc(r.bizName||'')+'</strong>'+(isIP?'<br><span style="font-size:9px;color:#6a0dad;">In-Person</span>':'')+'</td>'
@@ -407,16 +411,20 @@ function saveEdit(){
     }).catch(function(e){ document.getElementById('edit-err').textContent='Error: '+e.message; document.getElementById('edit-err').style.display='block'; });
 }
 
-function deleteForm(sessionId,bizName){
+function deleteForm(sessionId,bizName,isSigned){
   document.getElementById('del-session-id').value=sessionId;
+  document.getElementById('del-is-signed').value=isSigned||'0';
   document.getElementById('del-bizname').textContent=bizName;
+  var warn=document.getElementById('del-signed-warn');
+  if(warn) warn.style.display=(isSigned==='1'?'block':'none');
   document.getElementById('del-err').style.display='none';
   document.getElementById('del-modal').style.display='flex';
 }
 
 function confirmDelete(){
   var id=document.getElementById('del-session-id').value;
-  fetch('/api/deleteForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY})})
+  var isSigned=document.getElementById('del-is-signed').value==='1';
+  fetch('/api/deleteForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,force:true})})
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(data.ok){ closeModal('del-modal'); loadData(); }
