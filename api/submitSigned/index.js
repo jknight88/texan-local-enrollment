@@ -150,16 +150,17 @@ module.exports = async function(context, req) {
     const d = record, s = record.signed;
     const payRows = payInfo.rows ? payInfo.rows.join('') : row('Payment', payInfo.display || s.payDetail);
 
-    const countersignUrl = `${BASE_URL}/countersign?id=${body.sessionId}&key=${encodeURIComponent(countersignToken)}`;
+    const countersignUrl      = `${BASE_URL}/countersign?id=${body.sessionId}&key=${encodeURIComponent(countersignToken)}`;
+    const countersignUrlHtml = `${BASE_URL}/countersign?id=${body.sessionId}&amp;key=${encodeURIComponent(countersignToken)}`;
     const emailHtml = `
 <div style="font-family:Arial,sans-serif;max-width:520px;color:#1a1a2e;">
-  <div style="background:#00205B;padding:16px 22px;border-bottom:4px solid #BF0D3E;">
-    <div style="font-size:18px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Action Required - Countersignature Needed</div>
+  <div style="background:#00205B;padding:18px 24px;border-bottom:4px solid #BF0D3E;">
+    <div style="font-size:20px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Action Required &mdash; Countersignature Needed</div>
   </div>
   <div style="padding:24px;background:#f5f7fa;">
-    <div style="background:#f5a623;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
-      <div style="font-size:16px;font-weight:700;">&#9998; ${d.bizName} has signed - your countersignature is needed</div>
+    <div style="background:#dde0e6;border-left:4px solid #00205B;padding:14px 18px;border-radius:4px;margin-bottom:20px;">
+      <div style="font-size:15px;font-weight:700;color:#00205B;">&#9998; ${d.bizName} has signed &mdash; your countersignature is needed</div>
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
       <tr><td style="padding:7px 10px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Business</td><td style="padding:7px 10px;background:#fff;border:1px solid #c8cdd8;">${d.bizName}</td></tr>
@@ -167,13 +168,18 @@ module.exports = async function(context, req) {
       <tr><td style="padding:7px 10px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Client Signed</td><td style="padding:7px 10px;background:#fff;border:1px solid #c8cdd8;">${new Date(d.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
     </table>
     <div style="text-align:center;margin:20px 0;">
-      <a href="${countersignUrl}" style="display:inline-block;background:#BF0D3E;color:#fff;padding:14px 32px;border-radius:5px;text-decoration:none;font-size:15px;font-weight:700;">
+      <a href="${countersignUrlHtml}" style="display:inline-block;background:#BF0D3E;color:#fff;padding:14px 32px;border-radius:5px;text-decoration:none;font-size:15px;font-weight:700;">
         &#9998; Sign &amp; Complete Agreement
       </a>
     </div>
-    <p style="font-size:11px;color:#aaa;text-align:center;">This link is secure and unique to this agreement.</p>
+    <p style="font-size:11px;color:#aaa;text-align:center;">This link is secure and unique to this agreement. Do not share it.</p>
+  </div>
+  <div style="background:#00205B;border-top:3px solid #BF0D3E;padding:8px 22px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:10px;color:rgba(255,255,255,.55);">The Texan Local &mdash; Knight Dynamic Solutions, LLC</span>
+    <span style="font-size:10px;color:rgba(255,255,255,.55);">Comal County, TX</span>
   </div>
 </div>`;
+
 
         await fetch(`https://graph.microsoft.com/v1.0/users/${REP_EMAIL}/sendMail`, {
       method:"POST",
