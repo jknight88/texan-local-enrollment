@@ -1,5 +1,6 @@
 {
   "routes": [
+    { "route": "/",          "rewrite": "/index.html" },
     { "route": "/dashboard", "rewrite": "/dashboard/index.html" },
     { "route": "/sign*",     "rewrite": "/sign.html" },
     { "route": "/inperson",  "rewrite": "/inperson.html" }
