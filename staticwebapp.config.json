@@ -1,9 +1,10 @@
 {
   "routes": [
-    { "route": "/",          "rewrite": "/index.html" },
-    { "route": "/dashboard", "rewrite": "/dashboard/index.html" },
-    { "route": "/sign*",     "rewrite": "/sign.html" },
-    { "route": "/inperson",  "rewrite": "/inperson.html" }
+    { "route": "/",             "rewrite": "/index.html" },
+    { "route": "/dashboard",    "rewrite": "/dashboard/index.html" },
+    { "route": "/sign*",        "rewrite": "/sign.html" },
+    { "route": "/inperson",     "rewrite": "/inperson.html" },
+    { "route": "/countersign*", "rewrite": "/countersign.html" }
   ],
   "responseOverrides": {
     "404": { "rewrite": "/index.html", "statusCode": 200 }
