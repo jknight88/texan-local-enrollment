@@ -551,10 +551,19 @@ async function loadSession(){
     return;
   }
   try {
-    await fetch('/api/trackOpen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID})});
+    // trackOpen - don't block on failure
+    fetch('/api/trackOpen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID})}).catch(function(){});
+
     var resp = await fetch('/api/getForm?id='+SESSION_ID);
-    if(!resp.ok) throw new Error('Session not found or expired.');
-    var data = await resp.json();
+    var rawText = await resp.text();
+    var data;
+    try {
+      data = JSON.parse(rawText);
+    } catch(e) {
+      throw new Error('Server error (' + resp.status + '). Please try again or contact your Texan Local representative.');
+    }
+    if(!resp.ok) throw new Error(data.error || 'Session not found or expired.');
+
     if(data.status === 'signed' || data.status === 'client_signed'){
       document.getElementById('verify-gate').style.display='none';
       var cg=document.getElementById('consent-gate'); if(cg) cg.style.display='none';
@@ -567,8 +576,16 @@ async function loadSession(){
     document.getElementById('page-loading').style.display='none';
     showVerifyGate();
   } catch(err){
-    document.getElementById('page-loading').style.display='none';
-    document.getElementById('sign-progress').textContent = 'Error loading agreement: ' + err.message;
+    // Show error inside the loading overlay instead of spinning forever
+    var pl = document.getElementById('page-loading');
+    if(pl){
+      pl.innerHTML = '<div style="text-align:center;color:#fff;max-width:400px;padding:20px;">'
+        + '<div style="font-size:48px;margin-bottom:16px;">&#9888;</div>'
+        + '<div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:12px;">Unable to Load Agreement</div>'
+        + '<div style="font-size:13px;opacity:.85;line-height:1.6;margin-bottom:20px;">' + err.message + '</div>'
+        + '<div style="font-size:12px;opacity:.65;">Please check your link or contact your Texan Local representative.</div>'
+        + '</div>';
+    }
   }
 }
 
