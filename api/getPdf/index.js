@@ -67,14 +67,23 @@ module.exports = async function(context, req) {
     let zoneRows = '';
     if (fd.zones && fd.zones.length > 0) {
       fd.zones.forEach(z => {
-        const name    = z.zoneName || z.id || '';
-        const product = z.product  || '';
-        const rate    = z.rate     || '0.00';
-        zoneRows += `<tr>
-          <td style="padding:4pt 6pt;border:1pt solid #c8cdd8;font-size:9pt;">${name}</td>
-          <td style="padding:4pt 6pt;border:1pt solid #c8cdd8;font-size:9pt;">${product}</td>
-          <td style="padding:4pt 6pt;border:1pt solid #c8cdd8;font-size:9pt;text-align:right;">$${parseFloat(rate).toFixed(2)}/mo</td>
-        </tr>`;
+        const name    = z.zoneName   || z.id || '';
+        const product = z.product    || '';
+        const start   = z.startMonth || '';
+        const rate    = z.rate       || '0.00';
+        // Format start month from YYYY-MM to "Jan 2026"
+        let startFmt = '';
+        if(start) {
+          const parts = start.split('-');
+          const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
+        }
+        zoneRows += \`<tr>
+          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${name}</td>
+          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${product}</td>
+          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:center;">\${startFmt}</td>
+          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:right;">$\${parseFloat(rate).toFixed(2)}/mo</td>
+        </tr>\`;
       });
     }
 
@@ -166,7 +175,7 @@ module.exports = async function(context, req) {
       <span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.term||''}</span></div>
       ${fd.rep ? `<div><span style="font-size:7.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Sales Rep:</span><span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.rep}</span></div>` : ''}
     </div>
-    ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product</th><th style="text-align:right;">Rate/Mo</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
+    ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product</th><th style="text-align:center;">Start</th><th style="text-align:right;">Rate/Mo</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:8.5pt;margin-top:3pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
   </div>
 
