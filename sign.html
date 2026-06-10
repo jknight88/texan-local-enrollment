@@ -1146,8 +1146,19 @@ async function submitSigned(){
     var anameFull=document.getElementById('f-aname')?document.getElementById('f-aname').value.trim():'';
     payDetail='Routing:'+rout+'|Account:'+acctFull+'|Type:'+atype+'|Holder:'+anameFull;
   }
-  var initVals=[];
-  document.querySelectorAll('.ii').forEach(function(el){if(el.value.trim())initVals.push(el.value.trim());});
+  // Collect initials by section: payment, t&c, authorization
+  var initPayment='', initTC='', initAuth='';
+  document.querySelectorAll('.irow').forEach(function(row){
+    var inp=row.querySelector('input');
+    if(!inp||!inp.value.trim()) return;
+    var lbl=(row.querySelector('label')||{}).textContent||'';
+    lbl=lbl.toLowerCase();
+    if(lbl.indexOf('payment')>=0) initPayment=inp.value.trim();
+    else if(lbl.indexOf('terms')>=0||lbl.indexOf('t&c')>=0||lbl.indexOf('conditions')>=0||lbl.indexOf('read')>=0) initTC=inp.value.trim();
+    else if(lbl.indexOf('auth')>=0) initAuth=inp.value.trim();
+    else if(!initPayment) initPayment=inp.value.trim();
+  });
+  var initVals=[initPayment,initTC,initAuth];
 
   try{
     var resp=await fetch('/api/submitSigned',{
@@ -1161,7 +1172,15 @@ async function submitSigned(){
         subtotal:   document.getElementById('d-sub').textContent,
         firstMonth: document.getElementById('d-first').textContent,
         monthly:    document.getElementById('d-monthly').textContent,
-        initials:   initVals.join(', '),
+        initials:   JSON.stringify({payment:initVals[0],tc:initVals[1],auth:initVals[2]}),
+        sigImage:   (function(){
+          var c=document.getElementById('sc-client');
+          if(!c) return '';
+          // find the live canvas (may have been cloned by reinitPad)
+          var sw=document.querySelector('.sigwrap');
+          if(sw){ var cc=sw.querySelector('canvas'); if(cc) c=cc; }
+          try{ return c.toDataURL('image/png'); }catch(e){ return ''; }
+        })(),
         notes:      '',
         sigName:    document.getElementById('f-signame')?document.getElementById('f-signame').value.trim():'',
         sigTitle:   document.getElementById('f-sigtitle')?document.getElementById('f-sigtitle').value.trim():'',
