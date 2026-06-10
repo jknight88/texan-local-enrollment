@@ -1099,7 +1099,7 @@ async function submitSigned(){
       document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:14px;">&#10003;</span>Agreement Signed!';
       document.getElementById('loading-title').style.color = '#1a5c1a';
       document.getElementById('loading-title').style.fontSize = '20px';
-      document.getElementById('loading-msg').innerHTML = '<strong style="color:#1a1a2e;font-size:14px;">Thank you, your enrollment agreement has been completed.</strong><br><br><span style="color:#4a4f5e;font-size:12px;">Your Texan Local representative will be in touch soon regarding your first publication.</span>';
+      document.getElementById('loading-msg').innerHTML = '<strong style="color:#1a1a2e;font-size:15px;">Thank you!</strong><br><br><span style="color:#4a4f5e;font-size:13px;">This form has been sent back to Texan Local for signature and finalization. You will receive a finalized PDF copy once complete.</span>';
       document.querySelector('.spinner').style.display='none';
     } else {
       throw new Error(data.error||'Submit failed');
