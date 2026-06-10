@@ -596,6 +596,10 @@ function buildSummary(d){
     right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Phone</div>';
     right += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.phone) + '</div>';
   }
+  if(d.cell){
+    right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Cell</div>';
+    right += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.cell) + '</div>';
+  }
   right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Term</div>';
   right += '<div style="font-size:12px;font-weight:700;color:var(--bl);">' + esc(d.term||'') + '</div>';
   right += '</div>';
@@ -983,7 +987,20 @@ function updateCvvLength(cardType){
       cnumEl.value = parts.join(' ');
     }
     cnumEl.maxLength = (cardType === 'Amex') ? 19 : 19; // formatted with spaces
-  }
+  
+  // Reset card number, expiry, CVV, zip when card type changes
+  var fields = ['f-cnum','f-cexpm','f-cexpy','f-cvv','f-cbzip'];
+  fields.forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.value = '';
+    el.style.borderBottom = '';
+    var fw = el.closest ? el.closest('.f') : null;
+    if(fw){ fw.classList.remove('fe'); }
+  });
+  // Also update card number max length for Amex vs others
+  var cnumEl = document.getElementById('f-cnum');
+  if(cnumEl) cnumEl.maxLength = (cardType === 'Amex') ? 19 : 19;
 }
 
 function validatePayment(){
@@ -1156,6 +1173,7 @@ window.addEventListener('load',function(){
   var ds=(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
   ['dt-p2c','dt-p2r'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=ds;});
 });
+}
 </script>
 </body>
 </html>
