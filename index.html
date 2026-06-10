@@ -1072,7 +1072,8 @@ function collectRepFormData() {
     monthly:      document.getElementById('d-monthly').textContent,
     zones:      zones,
     notes:      document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : '',
-    rep:        document.getElementById('rep-select') ? document.getElementById('rep-select').value : ''
+    rep:         document.getElementById('rep-select') ? document.getElementById('rep-select').value : '',
+    clientEmail: document.getElementById('client-email') ? document.getElementById('client-email').value.trim() : ''
   };
 }
 
