@@ -618,12 +618,6 @@ function buildSummary(d){
   }
   document.getElementById('enrollment-summary').innerHTML = html2;
 }
-  // Show rep badge if present
-  if(d.rep){
-    var badge=document.getElementById('hdr-rep-badge');
-    if(badge){badge.textContent='Rep: '+d.rep;badge.style.display='inline-block';}
-  }
-}
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -1125,19 +1119,20 @@ async function submitSigned(){
     if(resp.ok&&data.ok){
       // Make overlay fully opaque - solid blocking completion screen
       var loadingOverlay = document.getElementById('sign-loading');
-      loadingOverlay.style.background = 'rgba(0,32,91,.97)';
+      loadingOverlay.style.background = 'rgba(0,0,0,.55)';
       loadingOverlay.style.zIndex = '99999';
+      document.body.style.overflow = 'hidden';
       var loadingBox = loadingOverlay.querySelector('.sign-loading-box');
       if(loadingBox){
-        loadingBox.style.maxWidth = '480px';
-        loadingBox.style.padding = '2.5rem 2rem';
-        loadingBox.style.textAlign = 'center';
-        loadingBox.style.borderTop = '6px solid #BF0D3E';
-        loadingBox.style.background = '#fff';
-        loadingBox.style.borderRadius = '8px';
+        loadingBox.style.maxWidth    = '480px';
+        loadingBox.style.padding     = '2.5rem 2rem';
+        loadingBox.style.textAlign   = 'center';
+        loadingBox.style.borderTop   = '6px solid #BF0D3E';
+        loadingBox.style.background  = '#fff';
+        loadingBox.style.borderRadius= '8px';
       }
       document.querySelector('.spinner').style.display='none';
-      // Hide sign-banner to prevent NaN showing through
+      // Hide sign-banner to prevent NaN showing
       var sb = document.getElementById('sign-banner');
       if(sb) sb.style.display = 'none';
       document.getElementById('loading-title').style.fontSize = '18px';
