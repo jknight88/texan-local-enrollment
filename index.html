@@ -288,7 +288,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
   </div>
   <div class="gr c3">
     <div class="f" id="fw-phone"><label class="lb">Phone #<span class="req">*</span></label><input id="f-phone" type="tel"><div class="errmsg">Required</div></div>
-    <div class="f"><label class="lb">Cell #</label><input type="tel"></div>
+    <div class="f"><label class="lb">Cell #</label><input id="f-cell" type="tel"></div>
     <div class="f" id="fw-email"><label class="lb">E-Mail<span class="req">*</span></label><input id="client-email" type="email"><div class="errmsg">Valid email required</div></div>
   </div>
 </div>
@@ -517,6 +517,11 @@ function openInPerson(){
   if(!document.getElementById('rep-select').value){
     alert('Please select a Company Rep (JAK or DTA) before signing in person.');
     document.getElementById('rep-select').focus();
+    return;
+  }
+  var zoneErrors = validateZones();
+  if(zoneErrors.length > 0){
+    alert('Please fix zone selections before signing:\n\n' + zoneErrors.join('\n'));
     return;
   }
   var biz   = document.getElementById('biz-name').value.trim();
@@ -1000,10 +1005,40 @@ function fallbackEmail(d){
 
 
 // ── REP-MODE: COLLECT & SEND ─────────────────────────────────────────
+function validateZones(){
+  var errors = [];
+  document.querySelectorAll('.ri').forEach(function(el){
+    var rate = parseFloat(el.value);
+    if(rate > 0){
+      var row = el.closest('tr');
+      var prodSel = row ? row.querySelector('.psel') : null;
+      if(prodSel && !prodSel.value){
+        errors.push('A zone has a rate entered but no product type selected.');
+      }
+    }
+  });
+  document.querySelectorAll('.psel').forEach(function(sel){
+    if(sel.value){
+      var row = sel.closest('tr');
+      var rateEl = row ? row.querySelector('.ri') : null;
+      if(rateEl && !(parseFloat(rateEl.value) > 0)){
+        errors.push('A zone has a product selected but no rate entered.');
+      }
+    }
+  });
+  // Deduplicate
+  return [...new Set(errors)];
+}
+
 function openSendToSign() {
   if(!document.getElementById('rep-select').value){
     alert('Please select a Company Rep (JAK or DTA) before sending.');
     document.getElementById('rep-select').focus();
+    return;
+  }
+  var zoneErrors = validateZones();
+  if(zoneErrors.length > 0){
+    alert('Please fix zone selections before sending:\n\n' + zoneErrors.join('\n'));
     return;
   }
   var ce = document.getElementById('client-email');
@@ -1073,6 +1108,8 @@ function collectRepFormData() {
     zones:      zones,
     notes:      document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : '',
     rep:         document.getElementById('rep-select') ? document.getElementById('rep-select').value : '',
+    phone:       document.getElementById('f-phone') ? document.getElementById('f-phone').value.trim() : '',
+    cell:        document.getElementById('f-cell')  ? document.getElementById('f-cell').value.trim()  : '',
     clientEmail: document.getElementById('client-email') ? document.getElementById('client-email').value.trim() : ''
   };
 }
