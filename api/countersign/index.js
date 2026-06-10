@@ -1,4 +1,4 @@
-/ GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page
+// GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page
 // POST /api/countersign  { sessionId, repSigName, repSigTitle, key } → finalizes agreement, emails client PDF link
 const { BlobServiceClient } = require("@azure/storage-blob");
 const crypto              = require("crypto");
@@ -99,16 +99,11 @@ module.exports = async function(context, req) {
       detail:    "Agreement countersigned by representative: " + (body.repSigName||"Josh Knight")
     });
 
-    const updated = JSON.stringify(record);
-    await blob.upload(updated, Buffer.byteLength(updated), { blobHTTPHeaders:{blobContentType:"application/json"} });
-
-    // Build PDF URL for client
-    // Generate a client-safe PDF token (doesn't expose dashboard password)
+    // Add pdfToken then do single save
     const pdfToken = require("crypto").randomBytes(24).toString("hex");
     record.pdfToken = pdfToken;
-    // Save updated record with pdfToken before sending emails
-    const updatedFinal = JSON.stringify(record);
-    await blob.upload(updatedFinal, Buffer.byteLength(updatedFinal), { blobHTTPHeaders:{blobContentType:"application/json"} });
+    const updated = JSON.stringify(record);
+    await blob.upload(updated, Buffer.byteLength(updated), { blobHTTPHeaders:{blobContentType:"application/json"} });
     const pdfUrl = `${BASE_URL}/api/getPdf?id=${body.sessionId}&pdfToken=${pdfToken}`;
     const token  = await getGraphToken();
 
