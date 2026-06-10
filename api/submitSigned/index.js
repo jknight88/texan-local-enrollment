@@ -1,6 +1,3 @@
-// POST /api/submitSigned
-// Full ESIGN/UETA compliant: IP, consent timestamp, SHA-256 audit hash, tamper-evident log
-
 const { BlobServiceClient } = require("@azure/storage-blob");
 const crypto              = require("crypto");
 const STORAGE_CONN        = process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -151,58 +148,36 @@ module.exports = async function(context, req) {
     const payRows = payInfo.rows ? payInfo.rows.join('') : row('Payment', payInfo.display || s.payDetail);
 
     const emailHtml = `
-<div style="font-family:Arial,sans-serif;max-width:640px;color:#1a1a2e;">
-  <div style="background:#00205B;padding:18px 24px;border-bottom:4px solid #BF0D3E;">
-    <div style="font-size:20px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">&#10003; Enrollment Agreement — Signed &amp; Complete</div>
+<div style="font-family:Arial,sans-serif;max-width:520px;color:#1a1a2e;">
+  <div style="background:#00205B;padding:16px 22px;border-bottom:4px solid #BF0D3E;">
+    <div style="font-size:18px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Enrollment Agreement — Signed</div>
   </div>
   <div style="padding:24px;background:#f5f7fa;">
-    <div style="background:#1a5c1a;color:#fff;padding:12px 16px;border-radius:5px;font-size:14px;font-weight:700;margin-bottom:20px;">
-      &#10003; ${d.bizName} has completed and signed their enrollment agreement.
+    <div style="background:#1a5c1a;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
+      <div style="font-size:22px;margin-bottom:6px;">&#10003;</div>
+      <div style="font-size:15px;font-weight:700;">${d.bizName} has signed their enrollment agreement.</div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#00205B;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Client Details</td></tr>
-      ${row("Business", d.bizName)}
-      ${row("Client Email", d.clientEmail)}
-      ${row("Sent", new Date(d.createdAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("Email Verified", new Date(d.verifiedAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("Signed By", s.sigName + (s.sigTitle ? ', ' + s.sigTitle : ''))}
-      ${row("Signed", new Date(d.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("IP Address", s.ipAddress)}
-      ${row("Device", s.userAgent ? s.userAgent.substring(0,80) : '')}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Signed By</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${s.sigName}${s.sigTitle ? ', ' + s.sigTitle : ''}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Business</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${d.bizName}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Client Email</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${d.clientEmail}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Signed At</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${new Date(d.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
+      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Audit Hash</td>
+          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;font-family:monospace;font-size:10px;word-break:break-all;">${auditHash.substring(0,32)}...</td></tr>
     </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#00205B;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Agreement Details</td></tr>
-      ${row("Term", (d.formData&&d.formData.term)||"")}
-      ${row("Subtotal", s.subtotal)}
-      ${row("First Month", s.firstMonth)}
-      ${row("Monthly Charge", s.monthly)}
-      ${row("Initials", s.initials)}
-      ${row("Notes", s.notes)}
-    </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#BF0D3E;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Payment Information (Full — Keep Secure)</td></tr>
-      ${row("Payment Method", s.payMethod)}
-      ${payRows}
-    </table>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      <tr><td colspan="2" style="background:#1a5c1a;color:#fff;padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">ESIGN Compliance Audit Trail</td></tr>
-      ${row("Electronic Consent", "&#10003; Agreed at " + new Date(s.consentAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("Consent Text", s.consentText)}
-      ${row("Email Verified", "&#10003; " + new Date(d.verifiedAt).toLocaleString("en-US",{timeZone:"America/Chicago"}))}
-      ${row("SHA-256 Audit Hash", `<span style="font-family:monospace;font-size:10px;word-break:break-all;">${auditHash}</span>`)}
-    </table>
-    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:10px 14px;font-size:11px;color:#555;margin-bottom:16px;">
-      <strong>&#9888; Security Notice:</strong> This email contains full payment information. Store securely and do not forward.
-      This agreement was executed under the federal ESIGN Act and UETA.
+    <div style="text-align:center;margin-top:20px;">
+      <a href="${BASE_URL}/dashboard" style="background:#00205B;color:#fff;padding:11px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View Full Details in Dashboard &rarr;</a>
     </div>
-    <div style="text-align:center;">
-      <a href="${BASE_URL}/dashboard" style="background:#00205B;color:#fff;padding:11px 24px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View Dashboard</a>
-    </div>
+    <p style="font-size:11px;color:#aaa;margin-top:18px;text-align:center;">Full payment info, audit trail, and signed document available in the dashboard.</p>
   </div>
 </div>`;
 
-    await fetch(`https://graph.microsoft.com/v1.0/users/${REP_EMAIL}/sendMail`, {
+        await fetch(`https://graph.microsoft.com/v1.0/users/${REP_EMAIL}/sendMail`, {
       method:"POST",
       headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
       body: JSON.stringify({
