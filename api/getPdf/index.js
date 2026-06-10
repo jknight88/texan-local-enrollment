@@ -1,4 +1,4 @@
-// GET /api/getPdf?id=SESSION_ID&key=DASHBOARD_KEY  or  ?id=SESSION_ID&pdfToken=TOKEN 
+// GET /api/getPdf?id=SESSION_ID&key=DASHBOARD_KEY  or  ?id=SESSION_ID&pdfToken=TOKEN
 const { BlobServiceClient } = require("@azure/storage-blob");
 const STORAGE_CONN  = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const CONTAINER     = "enrollments";
@@ -64,13 +64,14 @@ module.exports = async function(context, req) {
     const repSignedFmt  = record.countersignedAt ? fmtDate(record.countersignedAt) : signedDateFmt;
     const pay = maskPayment(s.payMethod, s.payDetail);
 
-    // Pre-build initials HTML (avoid IIFE inside template literal)
-    const initParts = (s.initials||"").split(",").map(x=>x.trim()).filter(Boolean);
-    const initialsHtml = "<span style=\"display:inline-flex;gap:12pt;margin-left:6pt;\">"
-      + (initParts[0] ? `<span>Payment: <strong style="font-family:cursive;font-size:10pt;">${initParts[0]}</strong></span>` : "")
-      + (initParts[1] ? `<span>T&amp;C: <strong style="font-family:cursive;font-size:10pt;">${initParts[1]}</strong></span>` : "")
-      + (initParts[2] ? `<span>Authorization: <strong style="font-family:cursive;font-size:10pt;">${initParts[2]}</strong></span>` : "")
-      + "</span>";
+    // Parse initials - stored as JSON {payment, tc, auth} or legacy comma string
+    let initObj = {payment:'', tc:'', auth:''};
+    try {
+      const raw = s.initials || '';
+      if (raw.startsWith('{')) { initObj = JSON.parse(raw); }
+      else { const p = raw.split(',').map(x=>x.trim()); initObj = {payment:p[0]||'',tc:p[1]||'',auth:p[2]||''}; }
+    } catch(e) {}
+    const initSig = (v) => v ? `<strong style="font-family:'Dancing Script',cursive;font-size:13pt;color:#00205B;">${v}</strong>` : '&mdash;';
 
     // Build zone rows from saved zones data
     let zoneRows = '';
@@ -87,12 +88,12 @@ module.exports = async function(context, req) {
           const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
         }
-        zoneRows += `<tr>
-          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${name}</td>
-          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${product}</td>
-          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:center;">\${startFmt}</td>
-          <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:right;">$\${parseFloat(rate).toFixed(2)}/mo</td>
-        </tr>`;
+        zoneRows += '<tr>'
+          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + name + '</td>'
+          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + product + '</td>'
+          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:center;">' + startFmt + '</td>'
+          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:right;">$' + parseFloat(rate).toFixed(2) + '/mo</td>'
+          + '</tr>';
       });
     }
 
@@ -171,8 +172,9 @@ module.exports = async function(context, req) {
       <div class="field"><label>City</label><div class="val">${fd.city||''}</div></div>
       <div class="field"><label>State / ZIP</label><div class="val">${fd.state||''} ${fd.zip||''}</div></div>
       <div class="field"><label>Phone</label><div class="val">${fd.phone||''}</div></div>
+      <div class="field"><label>Cell</label><div class="val">${fd.cell||''}</div></div>
       <div class="field"><label>Contact Name</label><div class="val">${fd.contact||''}</div></div>
-      <div class="field" style="grid-column:span 2"><label>Email</label><div class="val">${record.clientEmail||''}</div></div>
+      <div class="field"><label>Email</label><div class="val">${record.clientEmail||''}</div></div>
     </div>
   </div>
 
@@ -195,8 +197,9 @@ module.exports = async function(context, req) {
     <table class="dtbl" style="margin-top:0;border-top:none;">
       ${pay.rows}
     </table>
-    <div style="font-size:8pt;color:#666;margin-top:3pt;">
-      ${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}
+    <div style="font-size:8pt;color:#666;margin-top:3pt;display:flex;align-items:center;justify-content:space-between;">
+      <span>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</span>
+      <span style="white-space:nowrap;">Initials: ${initSig(initObj.payment)}</span>
     </div>
   </div>
 
@@ -209,11 +212,10 @@ module.exports = async function(context, req) {
       <div class="total-row pink"><span style="font-size:10pt;">First Month Payment</span><span style="font-size:12pt;color:#BF0D3E;">${s.firstMonth||'$0.00'}</span></div>
       <div class="total-row blue"><span style="font-size:10pt;">Monthly Charge (recurring)</span><span style="font-size:12pt;">${s.monthly||'$0.00'}</span></div>
     </div>
-    <div style="font-size:8pt;color:#666;margin-top:4pt;">
-  <strong>Initials:</strong>
-  ${initialsHtml}
-  &nbsp;&nbsp; Unpaid balances incur a fee of the greater of $50 or 10% per month.
-</div>
+    <div style="font-size:8pt;color:#666;margin-top:4pt;display:flex;align-items:center;justify-content:space-between;">
+      <span>Unpaid balances incur a fee of the greater of $50 or 10% per month.</span>
+      <span style="white-space:nowrap;">Authorization Initials: ${initSig(initObj.auth)}</span>
+    </div>
   </div>
 
   <div class="ftr">
@@ -257,13 +259,17 @@ module.exports = async function(context, req) {
     <div>
       <div class="sig-block">
         <label>Authorized Agent Signature</label>
-        <div style="min-height:28pt;border-bottom:1.25pt solid #1a1a2e;display:flex;align-items:flex-end;padding-bottom:2pt;margin-bottom:3pt;">
-          <span style="font-family:'Dancing Script',cursive;font-size:22pt;color:#00205B;line-height:1;">${s.sigName||''}</span>
+        <div style="min-height:36pt;border-bottom:1.25pt solid #1a1a2e;margin-bottom:3pt;overflow:hidden;">
+          ${s.sigImage ? '<img src="' + s.sigImage + '" style="max-height:36pt;max-width:100%;object-fit:contain;object-position:left bottom;" />' : '<span style="font-family:\'Dancing Script\',cursive;font-size:22pt;color:#00205B;line-height:1;">' + (s.sigName||'') + '</span>'}
         </div>
         <div class="sig-sub">Print Name: <strong>${s.sigName||''}</strong></div>
         <div class="sig-sub">Title: ${s.sigTitle||''}</div>
         <div class="sig-sub">Date: ${s.signedDate||''}</div>
-        <div class="sig-sub">Initials: ${s.initials||''}</div>
+        <div class="sig-sub" style="display:flex;gap:12pt;">
+          <span>Payment: ${initSig(initObj.payment)}</span>
+          <span>T&amp;C: ${initSig(initObj.tc)}</span>
+          <span>Auth: ${initSig(initObj.auth)}</span>
+        </div>
       </div>
     </div>
     <div>
