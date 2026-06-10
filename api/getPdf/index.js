@@ -55,13 +55,22 @@ module.exports = async function(context, req) {
   try {
     const dl     = await blob.downloadToBuffer();
     const record = JSON.parse(dl.toString());
-    if (record.status !== 'signed') { context.res={status:400,body:"Agreement not yet signed."}; return; }
+    if (record.status !== 'signed' && record.status !== 'client_signed') { context.res={status:400,body:"Agreement not yet signed."}; return; }
 
     const s  = record.signed || {};
     const fd = record.formData || {};
-    const signedDateFmt = new Date(record.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"});
-    const repSignedFmt  = record.countersignedAt ? new Date(record.countersignedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"}) : signedDateFmt;
+    const fmtDate = (v) => { try { return new Date(v).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"}); } catch(e){ return v||""; } };
+    const signedDateFmt = record.signedAt ? fmtDate(record.signedAt) : "";
+    const repSignedFmt  = record.countersignedAt ? fmtDate(record.countersignedAt) : signedDateFmt;
     const pay = maskPayment(s.payMethod, s.payDetail);
+
+    // Pre-build initials HTML (avoid IIFE inside template literal)
+    const initParts = (s.initials||"").split(",").map(x=>x.trim()).filter(Boolean);
+    const initialsHtml = "<span style=\"display:inline-flex;gap:12pt;margin-left:6pt;\">"
+      + (initParts[0] ? `<span>Payment: <strong style="font-family:cursive;font-size:10pt;">${initParts[0]}</strong></span>` : "")
+      + (initParts[1] ? `<span>T&amp;C: <strong style="font-family:cursive;font-size:10pt;">${initParts[1]}</strong></span>` : "")
+      + (initParts[2] ? `<span>Authorization: <strong style="font-family:cursive;font-size:10pt;">${initParts[2]}</strong></span>` : "")
+      + "</span>";
 
     // Build zone rows from saved zones data
     let zoneRows = '';
@@ -78,12 +87,12 @@ module.exports = async function(context, req) {
           const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
         }
-        zoneRows += \`<tr>
+        zoneRows += `<tr>
           <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${name}</td>
           <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">\${product}</td>
           <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:center;">\${startFmt}</td>
           <td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:right;">$\${parseFloat(rate).toFixed(2)}/mo</td>
-        </tr>\`;
+        </tr>`;
       });
     }
 
@@ -202,14 +211,7 @@ module.exports = async function(context, req) {
     </div>
     <div style="font-size:8pt;color:#666;margin-top:4pt;">
   <strong>Initials:</strong>
-  ${(function(){
-    var parts = (s.initials||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
-    return '<span style="display:inline-flex;gap:12pt;margin-left:6pt;">'
-      +(parts[0]?'<span>Payment: <strong style="font-family:cursive;font-size:10pt;">'+parts[0]+'</strong></span>':'')
-      +(parts[1]?'<span>T&amp;C: <strong style="font-family:cursive;font-size:10pt;">'+parts[1]+'</strong></span>':'')
-      +(parts[2]?'<span>Authorization: <strong style="font-family:cursive;font-size:10pt;">'+parts[2]+'</strong></span>':'')
-      +'</span>';
-  })()}
+  ${initialsHtml}
   &nbsp;&nbsp; Unpaid balances incur a fee of the greater of $50 or 10% per month.
 </div>
   </div>
