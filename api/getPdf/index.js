@@ -1,4 +1,4 @@
-// GET /api/getPdf?id=SESSION_ID&key=DASHBOARD_KEY  or  ?id=SESSION_ID&pdfToken=TOKEN
+// GET /api/getPdf?id=SESSION_ID&key=DASHBOARD_KEY  or  ?id=SESSION_ID&pdfToken=TOKEN 
 const { BlobServiceClient } = require("@azure/storage-blob");
 const STORAGE_CONN  = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const CONTAINER     = "enrollments";
