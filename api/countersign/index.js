@@ -100,7 +100,13 @@ module.exports = async function(context, req) {
     await blob.upload(updated, Buffer.byteLength(updated), { blobHTTPHeaders:{blobContentType:"application/json"} });
 
     // Build PDF URL for client
-    const pdfUrl = `${BASE_URL}/api/getPdf?id=${body.sessionId}&key=${encodeURIComponent(DASHBOARD_KEY)}`;
+    // Generate a client-safe PDF token (doesn't expose dashboard password)
+    const pdfToken = require("crypto").randomBytes(24).toString("hex");
+    record.pdfToken = pdfToken;
+    // Save updated record with pdfToken before sending emails
+    const updatedFinal = JSON.stringify(record);
+    await blob.upload(updatedFinal, Buffer.byteLength(updatedFinal), { blobHTTPHeaders:{blobContentType:"application/json"} });
+    const pdfUrl = `${BASE_URL}/api/getPdf?id=${body.sessionId}&pdfToken=${pdfToken}`;
     const token  = await getGraphToken();
 
     // Email client with completion notice + PDF link
