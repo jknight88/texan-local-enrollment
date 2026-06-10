@@ -1007,27 +1007,28 @@ function fallbackEmail(d){
 // ── REP-MODE: COLLECT & SEND ─────────────────────────────────────────
 function validateZones(){
   var errors = [];
-  document.querySelectorAll('.ri').forEach(function(el){
-    var rate = parseFloat(el.value);
-    if(rate > 0){
-      var row = el.closest('tr');
-      var prodSel = row ? row.querySelector('.psel') : null;
-      if(prodSel && !prodSel.value){
-        errors.push('A zone has a rate entered but no product type selected.');
-      }
-    }
+  // Check each zone row - only validate if any field in that row has been touched
+  document.querySelectorAll('table.ztbl tbody tr, table tbody tr:has(.ri)').forEach(function(row){
+    var prod  = row.querySelector('.psel');
+    var month = row.querySelector('.msel');
+    var rate  = row.querySelector('.ri');
+    if(!prod && !month && !rate) return; // not a zone row
+
+    var hasProduct = prod  && prod.value;
+    var hasMonth   = month && month.value;
+    var hasRate    = rate  && parseFloat(rate.value) > 0;
+    var hasAny     = hasProduct || hasMonth || hasRate;
+
+    // Only validate if at least one field is touched
+    if(!hasAny) return;
+
+    var zone = row.querySelector('.zn');
+    var name = zone ? zone.textContent.trim() : 'a zone';
+
+    if(!hasProduct) errors.push('Zone ' + name + ': please select a product type.');
+    if(!hasRate)    errors.push('Zone ' + name + ': please enter a rate.');
   });
-  document.querySelectorAll('.psel').forEach(function(sel){
-    if(sel.value){
-      var row = sel.closest('tr');
-      var rateEl = row ? row.querySelector('.ri') : null;
-      if(rateEl && !(parseFloat(rateEl.value) > 0)){
-        errors.push('A zone has a product selected but no rate entered.');
-      }
-    }
-  });
-  // Deduplicate
-  return [...new Set(errors)];
+  return errors;
 }
 
 function openSendToSign() {
