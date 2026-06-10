@@ -359,7 +359,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
 </div>
 
 <!-- SIGNING BANNER -->
-<div class="sign-banner" id="sign-banner">
+<div class="sign-banner" id="sign-banner" style="display:none;">
   <div>
     <h3>&#9998; Signature Required</h3>
     <p id="sign-progress">Loading your agreement&hellip;</p>
@@ -545,7 +545,7 @@ async function loadSession(){
     var resp = await fetch('/api/getForm?id='+SESSION_ID);
     if(!resp.ok) throw new Error('Session not found or expired.');
     var data = await resp.json();
-    if(data.status === 'signed'){
+    if(data.status === 'signed' || data.status === 'client_signed'){
       document.getElementById('verify-gate').style.display='none';
       var cg=document.getElementById('consent-gate'); if(cg) cg.style.display='none';
       var fw=document.getElementById('form-wrap'); if(fw) fw.style.display='none';
@@ -686,6 +686,8 @@ function markField(id,done){ if(!SIGN_FIELDS[id])return; SIGN_FIELDS[id].complet
 function enterClientSigningMode(){
   SIGNING_MODE=true;
   SIGN_FIELDS={};
+  var sb=document.getElementById('sign-banner');
+  if(sb) sb.style.display='flex';
 
   // Unlock payment fields
   refreshPayFields();
