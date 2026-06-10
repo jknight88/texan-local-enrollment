@@ -129,13 +129,7 @@ module.exports = async function(context, req) {
         &#128438; View &amp; Save Your Signed Agreement
       </a>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
-      <tr><td style="padding:6px 8px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Business</td><td style="padding:6px 8px;background:#fff;border:1px solid #c8cdd8;">${record.bizName}</td></tr>
-      <tr><td style="padding:6px 8px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Term</td><td style="padding:6px 8px;background:#fff;border:1px solid #c8cdd8;">${(record.formData&&record.formData.term)||''}</td></tr>
-      <tr><td style="padding:6px 8px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Monthly Charge</td><td style="padding:6px 8px;background:#fff;border:1px solid #c8cdd8;">${(record.signed&&record.signed.monthly)||''}</td></tr>
-      <tr><td style="padding:6px 8px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Client Signed</td><td style="padding:6px 8px;background:#fff;border:1px solid #c8cdd8;">${new Date(record.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
-      <tr><td style="padding:6px 8px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Rep Signed</td><td style="padding:6px 8px;background:#fff;border:1px solid #c8cdd8;">${new Date(now).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
-    </table>
+
     <p style="font-size:11px;color:#aaa;text-align:center;margin-top:16px;">
       Questions? Contact us at <a href="mailto:${REP_EMAIL}" style="color:#00205B;">${REP_EMAIL}</a>
     </p>
