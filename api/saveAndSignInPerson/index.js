@@ -108,6 +108,8 @@ module.exports = async function(context, req) {
         notes:       fd.notes || '',
         sigName:     body.sigName,
         sigTitle:    body.sigTitle,
+        repSigName:  body.repSigName  || "Josh Knight",
+        repSigTitle: body.repSigTitle || "Owner",
         signedDate:  body.signedDate,
         consentAt:   body.consentAt,
         consentText: "I agree to conduct this transaction using electronic records and signatures.",
@@ -208,7 +210,7 @@ module.exports = async function(context, req) {
         headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
         body: JSON.stringify({
           message:{
-            subject:`Your Texan Local Enrollment Agreement — ${fd.bizName}`,
+            subject:`Your Texan Local Enrollment Agreement is Complete - ${fd.bizName}`,
             body:{contentType:"HTML",content:clientHtml},
             toRecipients:[{emailAddress:{address:fd.clientEmail}}]
           },
