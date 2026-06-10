@@ -136,14 +136,17 @@ tbody td{padding:8px;vertical-align:middle;}
 
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal">
-  <div class="modal-box" style="max-width:560px;">
+  <div class="modal-box" style="max-width:680px;">
     <div class="modal-hdr">
       <span>Edit Enrollment</span>
       <button class="modal-close" onclick="closeModal('edit-modal')">&times;</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
       <input type="hidden" id="edit-session-id">
-      <div class="edit-grid">
+
+      <!-- Section 1: Client Info -->
+      <div style="background:var(--bl);color:#fff;padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:3px;margin-bottom:10px;">Client Information</div>
+      <div class="edit-grid" style="margin-bottom:16px;">
         <div class="edit-field" style="grid-column:span 2"><label>Business Name</label><input type="text" id="edit-bizname"></div>
         <div class="edit-field" style="grid-column:span 2"><label>Street Address</label><input type="text" id="edit-addr"></div>
         <div class="edit-field"><label>City</label><input type="text" id="edit-city"></div>
@@ -154,6 +157,31 @@ tbody td{padding:8px;vertical-align:middle;}
         <div class="edit-field"><label>Contact Name</label><input type="text" id="edit-contact"></div>
         <div class="edit-field" style="grid-column:span 2"><label>Notes</label><input type="text" id="edit-notes"></div>
       </div>
+
+      <!-- Section 2: Package Selection -->
+      <div style="background:var(--bl);color:#fff;padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:3px;margin-bottom:10px;">Package Selection</div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:10px;font-weight:700;color:var(--md);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:5px;">Term Package</label>
+        <div style="display:flex;gap:8px;">
+          <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--br);border-radius:4px;cursor:pointer;font-size:12px;">
+            <input type="radio" name="edit-term" value="6"> Limited (6 mo)
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--br);border-radius:4px;cursor:pointer;font-size:12px;">
+            <input type="radio" name="edit-term" value="12"> Premium (12 mo)
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--br);border-radius:4px;cursor:pointer;font-size:12px;">
+            <input type="radio" name="edit-term" value="24"> Elite (24 mo)
+          </label>
+        </div>
+      </div>
+
+      <!-- Zone editor -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:10px;font-weight:700;color:var(--md);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;">Zone Selections</label>
+        <div id="edit-zones-container" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <button type="button" onclick="addEditZone()" style="margin-top:8px;padding:5px 12px;border:1.5px dashed var(--br);background:transparent;border-radius:4px;font-size:11px;cursor:pointer;color:var(--md);font-family:inherit;">+ Add Zone Row</button>
+      </div>
+
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1.2rem;">
         <button onclick="closeModal('edit-modal')" style="padding:9px 18px;border-radius:4px;border:1.5px solid var(--br);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--md);">Cancel</button>
         <button onclick="saveEdit()" style="padding:9px 22px;border-radius:4px;border:none;background:var(--bl);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Save Changes</button>
@@ -373,10 +401,24 @@ function viewDoc(sessionId){
 function closeModal(id){ document.getElementById(id).style.display='none'; }
 function printDoc(){ window.print(); }
 
+var EDIT_PRODUCTS = ['Half Page','Full Page','2-Page Spread','Back Page','FC + 2','FC + 1','BC+2','BC+1','Combo A','Combo B','Postcards 10k','Postcards 20k'];
+
+function addEditZone(zoneId, product, rate){
+  var container = document.getElementById('edit-zones-container');
+  var row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1.5fr 80px 28px;gap:6px;align-items:center;';
+  var prodOpts = EDIT_PRODUCTS.map(function(p){ return '<option value="'+p+'"'+(p===product?' selected':'')+'>'+p+'</option>'; }).join('');
+  row.innerHTML = ''
+    + '<input type="text" placeholder="Zone (e.g. 01-NBE)" value="'+(zoneId||'')+'" style="border:none;border-bottom:1.5px solid var(--br);font-size:12px;font-family:inherit;padding:3px 2px;outline:none;background:transparent;" class="ez-id">'
+    + '<select class="ez-prod" style="border:none;border-bottom:1.5px solid var(--br);font-size:12px;font-family:inherit;padding:3px 2px;outline:none;background:transparent;"><option value="">Product...</option>'+prodOpts+'</select>'
+    + '<input type="number" placeholder="Rate" value="'+(rate||'')+'" min="0" step="0.01" style="border:none;border-bottom:1.5px solid var(--br);font-size:12px;font-family:inherit;padding:3px 2px;outline:none;text-align:center;background:transparent;" class="ez-rate">'
+    + '<button type="button" onclick="this.parentElement.remove()" style="border:none;background:transparent;color:#e53935;font-size:16px;cursor:pointer;padding:0;">&#215;</button>';
+  container.appendChild(row);
+}
+
 function editForm(sessionId){
   var r=DASH_DATA.find(function(x){ return x.sessionId===sessionId; });
   if(!r){ alert('Not found.'); return; }
-  if(r.status==='signed'){ alert('Cannot edit a signed record.'); return; }
   var fd=r.formData||{};
   document.getElementById('edit-session-id').value=sessionId;
   document.getElementById('edit-bizname').value=r.bizName||'';
@@ -388,6 +430,32 @@ function editForm(sessionId){
   document.getElementById('edit-email').value=r.clientEmail||'';
   document.getElementById('edit-contact').value=fd.contact||'';
   document.getElementById('edit-notes').value=fd.notes||'';
+
+  // Set term radio
+  var termVal = (fd.term||'').replace(' months','').trim();
+  document.querySelectorAll('input[name="edit-term"]').forEach(function(el){
+    el.checked = (el.value === termVal);
+    el.closest('label').style.borderColor = el.checked ? 'var(--bl)' : 'var(--br)';
+    el.closest('label').style.background  = el.checked ? '#edf0f7' : '#fff';
+  });
+  document.querySelectorAll('input[name="edit-term"]').forEach(function(el){
+    el.addEventListener('change', function(){
+      document.querySelectorAll('input[name="edit-term"]').forEach(function(r2){
+        r2.closest('label').style.borderColor = r2.checked ? 'var(--bl)' : 'var(--br)';
+        r2.closest('label').style.background  = r2.checked ? '#edf0f7' : '#fff';
+      });
+    });
+  });
+
+  // Populate zones
+  var container = document.getElementById('edit-zones-container');
+  container.innerHTML = '';
+  if(fd.zones && fd.zones.length > 0){
+    fd.zones.forEach(function(z){ addEditZone(z.id, null, z.rate); });
+  } else {
+    addEditZone();
+  }
+
   document.getElementById('edit-err').style.display='none';
   document.getElementById('edit-modal').style.display='flex';
 }
@@ -396,12 +464,27 @@ function saveEdit(){
   var id=document.getElementById('edit-session-id').value;
   var bizName=document.getElementById('edit-bizname').value.trim();
   if(!bizName){ document.getElementById('edit-err').textContent='Business name required.'; document.getElementById('edit-err').style.display='block'; return; }
+
+  // Collect term
+  var termEl = document.querySelector('input[name="edit-term"]:checked');
+  var termVal = termEl ? termEl.value + ' months' : '';
+
+  // Collect zones
+  var zones = [];
+  document.querySelectorAll('#edit-zones-container > div').forEach(function(row){
+    var zid  = row.querySelector('.ez-id') ? row.querySelector('.ez-id').value.trim() : '';
+    var prod = row.querySelector('.ez-prod') ? row.querySelector('.ez-prod').value : '';
+    var rate = row.querySelector('.ez-rate') ? row.querySelector('.ez-rate').value : '';
+    if(zid || rate) zones.push({id:zid, product:prod, rate:rate});
+  });
+
   var formData={
     bizName:bizName, addr:document.getElementById('edit-addr').value.trim(),
     city:document.getElementById('edit-city').value.trim(), state:document.getElementById('edit-state').value.trim(),
     zip:document.getElementById('edit-zip').value.trim(), phone:document.getElementById('edit-phone').value.trim(),
     clientEmail:document.getElementById('edit-email').value.trim(), contact:document.getElementById('edit-contact').value.trim(),
-    notes:document.getElementById('edit-notes').value.trim()
+    notes:document.getElementById('edit-notes').value.trim(),
+    term:termVal, zones:zones
   };
   fetch('/api/updateForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,formData:formData})})
     .then(function(r){ return r.json(); })
