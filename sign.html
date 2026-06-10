@@ -279,6 +279,15 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
 </head>
 <body style="padding-top:72px;">
 
+<!-- PAGE LOADING STATE (shown while API loads, hidden once done) -->
+<div id="page-loading" style="position:fixed;inset:0;background:rgba(0,32,91,.97);z-index:9998;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;color:#fff;">
+    <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1.2rem;"></div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;">The Texan Local</div>
+    <div style="font-size:13px;opacity:.75;">Loading your agreement&hellip;</div>
+  </div>
+</div>
+
 <!-- EMAIL VERIFY GATE -->
 <div id="verify-gate" style="display:none;position:fixed;inset:0;background:rgba(0,32,91,.97);z-index:9990;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;border-radius:8px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4);">
@@ -537,6 +546,7 @@ function getParam(name){
 async function loadSession(){
   SESSION_ID = getParam('id');
   if(!SESSION_ID){
+    document.getElementById('page-loading').style.display='none';
     document.getElementById('sign-progress').textContent = 'Invalid link — missing session ID.';
     return;
   }
@@ -549,12 +559,15 @@ async function loadSession(){
       document.getElementById('verify-gate').style.display='none';
       var cg=document.getElementById('consent-gate'); if(cg) cg.style.display='none';
       var fw=document.getElementById('form-wrap'); if(fw) fw.style.display='none';
+      document.getElementById('page-loading').style.display='none';
       var as=document.getElementById('already-signed'); if(as) as.style.display='flex';
       return;
     }
     window._sessionData = data;
+    document.getElementById('page-loading').style.display='none';
     showVerifyGate();
   } catch(err){
+    document.getElementById('page-loading').style.display='none';
     document.getElementById('sign-progress').textContent = 'Error loading agreement: ' + err.message;
   }
 }
