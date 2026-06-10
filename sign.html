@@ -386,7 +386,10 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
   </div>
   <div style="text-align:right;">
     <div style="font-family:'Playfair Display',serif;font-size:14px;color:#fff;">Advertising Enrollment Agreement</div>
-    <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:2px;">Please review, complete, and sign below</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:2px;display:flex;align-items:center;justify-content:flex-end;gap:12px;">
+      <span id="hdr-rep-badge" style="display:none;background:rgba(255,255,255,.15);border-radius:3px;padding:2px 8px;font-size:11px;font-weight:700;color:#fff;"></span>
+      <span>Please review, complete, and sign below</span>
+    </div>
   </div>
 </div>
 
@@ -579,6 +582,11 @@ function buildSummary(d){
     var ddEl=document.getElementById('addon-detail'); if(ddEl&&d.addonDetail) ddEl.textContent=d.addonDetail;
   }
   document.getElementById('enrollment-summary').innerHTML = html;
+  // Show rep badge if present
+  if(d.rep){
+    var badge=document.getElementById('hdr-rep-badge');
+    if(badge){badge.textContent='Rep: '+d.rep;badge.style.display='inline-block';}
+  }
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
