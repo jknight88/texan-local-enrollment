@@ -11,7 +11,7 @@ module.exports = async function(context, req) {
     return;
   }
   const id = req.query.id;
-  if (!id) { context.res = { status: 400, body: { error: "Missing id" } }; return; }
+  if (!id) { context.res = { status: 400, headers: {"Content-Type":"application/json"}, body: JSON.stringify({ error: "Missing id" }) }; return; }
   try {
     const blobClient = BlobServiceClient.fromConnectionString(STORAGE_CONN);
     const container  = blobClient.getContainerClient(CONTAINER);
@@ -22,10 +22,10 @@ module.exports = async function(context, req) {
     context.res = {
       status: 200,
       headers: { "Content-Type": "application/json" },
-      body: { sessionId: record.sessionId, bizName: record.bizName, formData: record.formData, status: record.status }
+      body: JSON.stringify({ sessionId: record.sessionId, bizName: record.bizName, clientEmail: record.clientEmail, formData: record.formData, status: record.status })
     };
   } catch (err) {
     context.log.error("getForm error:", err);
-    context.res = { status: 404, body: { error: "Session not found" } };
+    context.res = { status: 404, headers: {"Content-Type":"application/json"}, body: JSON.stringify({ error: "Session not found" }) };
   }
 };
