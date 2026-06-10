@@ -426,7 +426,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
     <div class="gr c4">
       <div class="f" id="fw-cbill" style="grid-column:span 2"><label class="lb">Billing Address<span class="req">*</span></label><input id="f-cbill" type="text"><div class="errmsg">Required</div></div>
       <div class="f" id="fw-cbzip"><label class="lb">Billing ZIP<span class="req">*</span></label><input id="f-cbzip" type="text" maxlength="5" inputmode="numeric" placeholder="00000" oninput="enforceDigits(this,5)"><div class="errmsg">5-digit ZIP</div></div>
-      <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="this.value=this.value.replace(/[^0-9]/g,'')"><div class="errmsg">3-4 digits</div></div>
+      <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="enforceRange(this,4,17)"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
     <div class="irow"><label>Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
@@ -561,26 +561,23 @@ function buildSummary(d){
   var html = '<div class="summary-grid">';
   html += '<div class="summary-item"><span>Business Name</span>' + esc(d.bizName||'') + '</div>';
   if(d.dba) html += '<div class="summary-item"><span>DBA</span>' + esc(d.dba) + '</div>';
-  html += '<div class="summary-item"><span>Address</span>' + esc(d.addr||'') + '</div>';
-  html += '<div class="summary-item"><span>City / State / ZIP</span>' + esc((d.city||'') + ', ' + (d.state||'') + ' ' + (d.zip||'')) + '</div>';
-  html += '<div class="summary-item"><span>Phone</span>' + esc(d.phone||'') + '</div>';
+  html += '<div class="summary-item" style="grid-column:span 2"><span>Address</span>'
+    + esc(d.addr||'') + (d.city ? '<br><span style="font-weight:400;font-size:11.5px;color:#333;">' + esc(d.city) + (d.state?', '+esc(d.state):'') + (d.zip?' '+esc(d.zip):'') + '</span>' : '') + '</div>';
   html += '<div class="summary-item"><span>Term</span>' + esc(d.term||'') + '</div>';
-  if(d.subtotal) html += '<div class="summary-item"><span>Monthly Subtotal</span>' + esc(d.subtotal) + '</div>';
+  if(d.phone) html += '<div class="summary-item"><span>Phone</span>' + esc(d.phone) + '</div>';
+  if(d.contact) html += '<div class="summary-item"><span>Contact</span>' + esc(d.contact) + '</div>';
   html += '</div>';
   if(d.notes) html += '<div style="margin-top:.6rem;font-size:11px;color:var(--md);"><strong>Notes:</strong> ' + esc(d.notes) + '</div>';
-  
-  // Update totals display from saved data
-  if(d.subtotal){ var ds=document.getElementById('d-sub'); if(ds) ds.textContent=d.subtotal; }
-  if(d.firstMonth){ var df=document.getElementById('d-first'); if(df) df.textContent=d.firstMonth; }
-  if(d.monthly){ var dm=document.getElementById('d-monthly'); if(dm) dm.textContent=d.monthly; }
-  // Show addons row if rep had addons
+
+  if(d.firstMonth){ var dfEl=document.getElementById('d-first'); if(dfEl) dfEl.textContent=d.firstMonth; }
+  if(d.monthly){ var dmEl=document.getElementById('d-monthly'); if(dmEl) dmEl.textContent=d.monthly; }
+  if(d.subtotal){ var dsEl=document.getElementById('d-sub'); if(dsEl) dsEl.textContent=d.subtotal; }
   var arEl=document.getElementById('row-addons');
-  if(arEl && (d.addonsVisible || (d.addons && d.addons !== '$0.00' && d.addons !== ''))){ 
+  if(arEl && (d.addonsVisible || (d.addons && d.addons !== '$0.00' && d.addons !== ''))){
     arEl.style.display='flex';
     var daEl=document.getElementById('d-addons'); if(daEl&&d.addons) daEl.textContent=d.addons;
     var ddEl=document.getElementById('addon-detail'); if(ddEl&&d.addonDetail) ddEl.textContent=d.addonDetail;
   }
-  
   document.getElementById('enrollment-summary').innerHTML = html;
 }
 
@@ -826,32 +823,87 @@ function calcTotals(){
 }
 
 function enforceDigits(el, exact){
-  el.value = el.value.replace(/[^0-9]/g,'').substring(0, exact);
+  var digits = el.value.replace(/[^0-9]/g,'');
+  el.value = digits.substring(0, exact);
   var fw = el.closest('.f');
-  if(fw){
-    if(el.value.length === exact){ fw.classList.remove('fe'); }
-    else if(el.value.length > 0){ fw.classList.add('fe'); }
-    else { fw.classList.remove('fe'); }
+  if(!fw) return;
+  // Only turn green when exactly the right number of digits
+  if(el.value.length === exact){
+    fw.classList.remove('fe');
+    el.style.borderBottom = '2px solid #2a7a2a';
+  } else if(el.value.length > 0){
+    fw.classList.add('fe');
+    el.style.borderBottom = '2px solid var(--rd)';
+  } else {
+    fw.classList.remove('fe');
+    el.style.borderBottom = '';
   }
 }
 
 function enforceCVV(el){
   var isAmex = document.getElementById('f-ctype') && document.getElementById('f-ctype').value === 'Amex';
   var reqLen = isAmex ? 4 : 3;
-  el.value = el.value.replace(/[^0-9]/g,'').substring(0, reqLen);
+  el.maxLength = reqLen;
+  var digits = el.value.replace(/[^0-9]/g,'');
+  el.value = digits.substring(0, reqLen);
   var fw = el.closest('.f');
-  if(fw){
-    if(el.value.length === reqLen){ fw.classList.remove('fe'); }
-    else if(el.value.length > 0){ fw.classList.add('fe'); }
-    else { fw.classList.remove('fe'); }
+  if(!fw) return;
+  if(el.value.length === reqLen){
+    fw.classList.remove('fe');
+    el.style.borderBottom = '2px solid #2a7a2a';
+  } else if(el.value.length > 0){
+    fw.classList.add('fe');
+    el.style.borderBottom = '2px solid var(--rd)';
+  } else {
+    fw.classList.remove('fe');
+    el.style.borderBottom = '';
+  }
+}
+
+function enforceRange(el, min, max){
+  var digits = el.value.replace(/[^0-9]/g,'');
+  el.value = digits.substring(0, max);
+  var fw = el.closest('.f');
+  if(!fw) return;
+  if(el.value.length >= min && el.value.length <= max){
+    fw.classList.remove('fe');
+    el.style.borderBottom = '2px solid #2a7a2a';
+  } else if(el.value.length > 0){
+    fw.classList.add('fe');
+    el.style.borderBottom = '2px solid var(--rd)';
+  } else {
+    fw.classList.remove('fe');
+    el.style.borderBottom = '';
   }
 }
 
 function formatCardNum(el){
-  var v=el.value.replace(/[^0-9]/g,'').substring(0,16);
-  var parts=[];
-  for(var i=0;i<v.length;i+=4) parts.push(v.substring(i,i+4));
-  el.value=parts.join(' ');
+  var cardType = document.getElementById('f-ctype') ? document.getElementById('f-ctype').value : '';
+  var isAmex = cardType === 'Amex';
+  var maxDigits = isAmex ? 15 : 16;
+  var digits = el.value.replace(/[^0-9]/g,'').substring(0, maxDigits);
+  var parts = [];
+  if(isAmex){
+    if(digits.length > 0)  parts.push(digits.substring(0,4));
+    if(digits.length > 4)  parts.push(digits.substring(4,10));
+    if(digits.length > 10) parts.push(digits.substring(10,15));
+  } else {
+    for(var i=0;i<digits.length;i+=4) parts.push(digits.substring(i,i+4));
+  }
+  el.value = parts.join(' ');
+  // Visual feedback: only green when exact digit count reached
+  var fw = el.closest('.f');
+  if(!fw) return;
+  if(digits.length === maxDigits){
+    fw.classList.remove('fe');
+    el.style.borderBottom = '2px solid #2a7a2a';
+  } else if(digits.length > 0){
+    fw.classList.add('fe');
+    el.style.borderBottom = '2px solid var(--rd)';
+  } else {
+    fw.classList.remove('fe');
+    el.style.borderBottom = '';
+  }
 }
 
 function updateCvvLength(cardType){
@@ -1036,7 +1088,7 @@ async function submitSigned(){
         loadingBox.style.textAlign = 'center';
         loadingBox.style.borderTop = '6px solid #BF0D3E';
       }
-      document.getElementById('loading-title').innerHTML = '<span style="font-size:52px;display:block;margin-bottom:12px;">&#10003;</span>✓ Agreement Signed!';
+      document.getElementById('loading-title').innerHTML = '<span style="font-size:64px;display:block;margin-bottom:14px;">&#10003;</span>Agreement Signed!';
       document.getElementById('loading-title').style.color = '#1a5c1a';
       document.getElementById('loading-title').style.fontSize = '20px';
       document.getElementById('loading-msg').innerHTML = '<strong style="color:#1a1a2e;font-size:14px;">Thank you, your enrollment agreement has been completed.</strong><br><br><span style="color:#4a4f5e;font-size:12px;">Your Texan Local representative will be in touch soon regarding your first publication.</span>';
