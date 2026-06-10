@@ -542,12 +542,12 @@ function getParam(name){
   return new URLSearchParams(window.location.search).get(name);
 }
 
-// ── LOAD SESSION ─────────────────────────────────────────────────────
+// -- LOAD SESSION -----------------------------------------------------
 async function loadSession(){
   SESSION_ID = getParam('id');
   if(!SESSION_ID){
     document.getElementById('page-loading').style.display='none';
-    document.getElementById('sign-progress').textContent = 'Invalid link — missing session ID.';
+    document.getElementById('sign-progress').textContent = 'Invalid link  -  missing session ID.';
     return;
   }
   try {
@@ -590,7 +590,7 @@ async function loadSession(){
   } catch(err){
     // Show error inside the loading overlay instead of spinning forever
     var msg = err.name === 'AbortError'
-      ? 'The request timed out. The server may be starting up — please wait 30 seconds and try your link again.'
+      ? 'The request timed out. The server may be starting up  -  please wait 30 seconds and try your link again.'
       : err.message;
     var msg = err.name === 'AbortError'
       ? 'Request timed out. Please wait 30 seconds and try your link again.'
@@ -607,7 +607,7 @@ async function loadSession(){
   }
 }
 
-// ── BUILD READ-ONLY SUMMARY ───────────────────────────────────────────
+// -- BUILD READ-ONLY SUMMARY -------------------------------------------
 function buildSummary(d){
   // Two-column layout: left=biz name+address, right=contact+phone+term
   var left  = '<div style="flex:1;min-width:0;">';
@@ -660,7 +660,7 @@ function buildSummary(d){
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// ── VERIFY GATE ───────────────────────────────────────────────────────
+// -- VERIFY GATE -------------------------------------------------------
 function showVerifyGate(){
   document.getElementById('verify-gate').style.display='flex';
   sendVerifyCode();
@@ -668,7 +668,7 @@ function showVerifyGate(){
 
 async function sendVerifyCode(){
   var status=document.getElementById('verify-status');
-  status.textContent='Sending verification code to your email…';
+  status.textContent='Sending verification code to your email...';
   status.style.color='var(--md)';
   try{
     var r=await fetch('/api/verifyEmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID,action:'send'})});
@@ -683,7 +683,7 @@ async function confirmVerifyCode(){
   var err=document.getElementById('verify-err');
   if(!code||code.length!==6){err.textContent='Please enter the 6-digit code.';err.style.display='block';return;}
   var btn=document.getElementById('verify-btn');
-  btn.disabled=true; btn.textContent='Verifying…';
+  btn.disabled=true; btn.textContent='Verifying...';
   try{
     var r=await fetch('/api/verifyEmail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID,action:'confirm',token:code})});
     var d=await r.json();
@@ -710,7 +710,7 @@ function confirmConsent(){
   enterClientSigningMode();
 }
 
-// ── SWITCH PAYMENT TAB ────────────────────────────────────────────────
+// -- SWITCH PAYMENT TAB ------------------------------------------------
 function switchTab(t){
   document.querySelectorAll('.ptab').forEach(function(el,i){el.classList.toggle('on',(t==='cc'&&i===0)||(t==='ach'&&i===1));});
   var ppcc=document.getElementById('pp-cc'); if(ppcc) ppcc.classList.toggle('on',t==='cc');
@@ -718,7 +718,7 @@ function switchTab(t){
   if(window.SIGNING_MODE) refreshPayFields();
 }
 
-// ── SIGNING MODE ──────────────────────────────────────────────────────
+// -- SIGNING MODE ------------------------------------------------------
 var SIGNING_MODE = false;
 
 function hlField(el,done){
@@ -890,7 +890,7 @@ function checkAllSigned(){
   var prog=document.getElementById('sign-progress');
   if(done===total&&total>0){
     btn.classList.add('ready'); btn.disabled=false;
-    prog.textContent='All fields complete — press Complete & Submit.';
+    prog.textContent='All fields complete  -  press Complete & Submit.';
   } else {
     btn.classList.remove('ready'); btn.disabled=true;
     prog.textContent=done+' of '+total+' required fields completed.';
@@ -898,7 +898,7 @@ function checkAllSigned(){
 }
 
 function calcTotals(){
-  // On signing page totals come from saved session data — nothing to calculate
+  // On signing page totals come from saved session data  -  nothing to calculate
 }
 
 function enforceDigits(el, exact){
@@ -1121,7 +1121,7 @@ async function submitSigned(){
   if(!validatePayment()) return;
   var loading=document.getElementById('sign-loading');
   loading.style.display='flex';
-  document.getElementById('loading-title').textContent='Submitting…';
+  document.getElementById('loading-title').textContent='Submitting...';
   document.getElementById('loading-msg').textContent='Sending your signed agreement. Please wait.';
 
   var ccOn=document.getElementById('pp-cc').classList.contains('on');
