@@ -31,6 +31,7 @@ module.exports = async function(context, req) {
         auditHash:    record.auditHash,
         verified:     record.verified || false,
         term:         record.formData && record.formData.term,
+        rep:          record.formData && record.formData.rep,
         monthly:      record.signed   && record.signed.monthly,
         formData:     record.formData,
         signed:       record.signed,
