@@ -113,7 +113,10 @@ module.exports = async function(context, req) {
       { event:"audit_hash",        timestamp:signedAt,            detail:"SHA-256: " + auditHash }
     ];
 
-    record.status     = "signed";
+    // Generate a secure countersign token so only rep can access the page
+    const countersignToken = require("crypto").randomBytes(32).toString("hex");
+    record.status           = "client_signed";
+    record.countersignToken = countersignToken;
     record.signedAt   = signedAt;
     record.auditHash  = auditHash;
     record.auditTrail = auditTrail;
@@ -147,33 +150,28 @@ module.exports = async function(context, req) {
     const d = record, s = record.signed;
     const payRows = payInfo.rows ? payInfo.rows.join('') : row('Payment', payInfo.display || s.payDetail);
 
+    const countersignUrl = `${BASE_URL}/countersign?id=${body.sessionId}&key=${encodeURIComponent(countersignToken)}`;
     const emailHtml = `
 <div style="font-family:Arial,sans-serif;max-width:520px;color:#1a1a2e;">
   <div style="background:#00205B;padding:16px 22px;border-bottom:4px solid #BF0D3E;">
     <div style="font-size:18px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Enrollment Agreement — Signed</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Action Required - Countersignature Needed</div>
   </div>
   <div style="padding:24px;background:#f5f7fa;">
-    <div style="background:#1a5c1a;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
-      <div style="font-size:22px;margin-bottom:6px;">&#10003;</div>
-      <div style="font-size:15px;font-weight:700;">${d.bizName} has signed their enrollment agreement.</div>
+    <div style="background:#f5a623;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;">&#9998; ${d.bizName} has signed - your countersignature is needed</div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Signed By</td>
-          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${s.sigName}${s.sigTitle ? ', ' + s.sigTitle : ''}</td></tr>
-      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Business</td>
-          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${d.bizName}</td></tr>
-      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Client Email</td>
-          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${d.clientEmail}</td></tr>
-      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Signed At</td>
-          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;">${new Date(d.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
-      <tr><td style="padding:8px 10px;font-weight:700;color:#4a4f5e;background:#edf0f7;border:1px solid #c8cdd8;">Audit Hash</td>
-          <td style="padding:8px 10px;background:#fff;border:1px solid #c8cdd8;font-family:monospace;font-size:10px;word-break:break-all;">${auditHash.substring(0,32)}...</td></tr>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+      <tr><td style="padding:7px 10px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;width:38%;">Business</td><td style="padding:7px 10px;background:#fff;border:1px solid #c8cdd8;">${d.bizName}</td></tr>
+      <tr><td style="padding:7px 10px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Signed By</td><td style="padding:7px 10px;background:#fff;border:1px solid #c8cdd8;">${s.sigName}${s.sigTitle ? ', ' + s.sigTitle : ''}</td></tr>
+      <tr><td style="padding:7px 10px;font-weight:700;background:#edf0f7;border:1px solid #c8cdd8;">Client Signed</td><td style="padding:7px 10px;background:#fff;border:1px solid #c8cdd8;">${new Date(d.signedAt).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"full",timeStyle:"short"})}</td></tr>
     </table>
-    <div style="text-align:center;margin-top:20px;">
-      <a href="${BASE_URL}/dashboard" style="background:#00205B;color:#fff;padding:11px 28px;border-radius:4px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View Full Details in Dashboard &rarr;</a>
+    <div style="text-align:center;margin:20px 0;">
+      <a href="${countersignUrl}" style="display:inline-block;background:#BF0D3E;color:#fff;padding:14px 32px;border-radius:5px;text-decoration:none;font-size:15px;font-weight:700;">
+        &#9998; Sign &amp; Complete Agreement
+      </a>
     </div>
-    <p style="font-size:11px;color:#aaa;margin-top:18px;text-align:center;">Full payment info, audit trail, and signed document available in the dashboard.</p>
+    <p style="font-size:11px;color:#aaa;text-align:center;">This link is secure and unique to this agreement.</p>
   </div>
 </div>`;
 
@@ -182,10 +180,11 @@ module.exports = async function(context, req) {
       headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
       body: JSON.stringify({
         message:{
-          subject:`\u2713 SIGNED: Texan Local Enrollment \u2014 ${d.bizName}`,
+          subject:`ACTION REQUIRED: Countersignature Needed - ${d.bizName}`,
           body:{contentType:"HTML",content:emailHtml},
           toRecipients:[{emailAddress:{address:REP_EMAIL}}],
-          replyTo:[{emailAddress:{address:d.clientEmail}}]
+          replyTo:[{emailAddress:{address:d.clientEmail}}],
+          importance:'High'
         },
         saveToSentItems:true
       })
