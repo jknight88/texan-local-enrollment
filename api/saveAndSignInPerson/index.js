@@ -108,6 +108,7 @@ module.exports = async function(context, req) {
         notes:       fd.notes || '',
         sigName:     body.sigName,
         sigTitle:    body.sigTitle,
+        sigImage:    body.sigImage || '',
         repSigName:  body.repSigName  || "Josh Knight",
         repSigTitle: body.repSigTitle || "Owner",
         signedDate:  body.signedDate,
