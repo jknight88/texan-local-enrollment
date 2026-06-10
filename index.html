@@ -519,17 +519,23 @@ function openInPerson(){
     document.getElementById('rep-select').focus();
     return;
   }
-  var biz  = document.getElementById('biz-name').value.trim();
-  var addr = document.getElementById('f-addr').value.trim();
-  var term = document.querySelector('input[name=term]:checked');
+  var biz   = document.getElementById('biz-name').value.trim();
+  var addr  = document.getElementById('f-addr').value.trim();
+  var term  = document.querySelector('input[name=term]:checked');
+  var phone = document.getElementById('f-phone') ? document.getElementById('f-phone').value.trim() : '';
+  var cell  = document.getElementById('f-cell')  ? document.getElementById('f-cell').value.trim()  : '';
+  var rep   = document.getElementById('rep-select') ? document.getElementById('rep-select').value : '';
   var items = [
-    {label:'Business Name', ok:!!biz},
-    {label:'Address',       ok:!!addr},
-    {label:'Term Package',  ok:!!term}
+    {label:'Rep Selected',  ok:!!rep,   required:true},
+    {label:'Business Name', ok:!!biz,   required:true},
+    {label:'Address',       ok:!!addr,  required:false},
+    {label:'Phone',         ok:!!phone, required:false},
+    {label:'Cell',          ok:!!cell,  required:false},
+    {label:'Term Package',  ok:!!term,  required:true}
   ];
   document.getElementById('inperson-preflight').innerHTML =
     '<strong style="color:var(--bl);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Pre-flight Check</strong><br>' +
-    items.map(function(i){return '<span style="color:'+(i.ok?'#2a7a2a':'var(--rd)')+';">'+(i.ok?'&#10003;':'&#9888;')+' '+i.label+(i.ok?'':'<em> (recommended)</em>')+'</span>';}).join('<br>');
+    items.map(function(i){return '<span style="color:'+(i.ok?'#2a7a2a':(i.required?'var(--rd)':'#e65100'))+';">'+(i.ok?'&#10003;':'&#9888;')+' '+i.label+(i.ok?'':(i.required?' <em>(required)</em>':' <em>(recommended)</em>'))+'</span>';}).join('<br>');
   document.getElementById('inperson-modal').style.display='flex';
 }
 
@@ -1002,18 +1008,24 @@ function openSendToSign() {
   }
   var ce = document.getElementById('client-email');
   if (ce && ce.value) document.getElementById('modal-client-email').value = ce.value;
-  var biz  = document.getElementById('biz-name').value.trim();
-  var addr = document.getElementById('f-addr').value.trim();
-  var term = document.querySelector('input[name=term]:checked');
+  var biz   = document.getElementById('biz-name').value.trim();
+  var addr  = document.getElementById('f-addr').value.trim();
+  var term  = document.querySelector('input[name=term]:checked');
+  var phone = document.getElementById('f-phone') ? document.getElementById('f-phone').value.trim() : '';
+  var cell  = document.getElementById('f-cell')  ? document.getElementById('f-cell').value.trim()  : '';
+  var rep   = document.getElementById('rep-select') ? document.getElementById('rep-select').value : '';
   var items = [
-    {label:'Business Name', ok:!!biz},
-    {label:'Street Address', ok:!!addr},
-    {label:'Term Package',   ok:!!term},
-    {label:'Client Email',   ok:!!(ce&&ce.value.trim())}
+    {label:'Rep Selected',  ok:!!rep,                         required:true},
+    {label:'Business Name', ok:!!biz,                         required:true},
+    {label:'Street Address',ok:!!addr,                        required:false},
+    {label:'Phone',         ok:!!phone,                       required:false},
+    {label:'Cell',          ok:!!cell,                        required:false},
+    {label:'Term Package',  ok:!!term,                        required:true},
+    {label:'Client Email',  ok:!!(ce&&ce.value.trim()),       required:true}
   ];
   document.getElementById('sign-preflight').innerHTML =
     '<strong style="color:var(--bl);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Pre-flight Check</strong><br>' +
-    items.map(function(i){return '<span style="color:'+(i.ok?'#2a7a2a':'var(--rd)')+';">'+(i.ok?'&#10003;':'&#9888;')+' '+i.label+(i.ok?'':'<em> (recommended)</em>')+'</span>';}).join('<br>');
+    items.map(function(i){return '<span style="color:'+(i.ok?'#2a7a2a':(i.required?'var(--rd)':'#e65100'))+';">'+(i.ok?'&#10003;':'&#9888;')+' '+i.label+(i.ok?'':(i.required?' <em>(required)</em>':' <em>(recommended)</em>'))+'</span>';}).join('<br>');
   document.getElementById('sign-modal').style.display='flex';
 }
 function closeModal(){ document.getElementById('sign-modal').style.display='none'; document.getElementById('modal-email-err').style.display='none'; }
