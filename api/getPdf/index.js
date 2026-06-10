@@ -84,17 +84,11 @@ module.exports = async function(context, req) {
 <meta charset="UTF-8">
 <title>Enrollment Agreement - ${record.bizName}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&family=Dancing+Script:wght@600&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
   *{ box-sizing:border-box; margin:0; padding:0; }
-  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:8pt; background:#fff; }
-  @page{
-    margin:0.35in;
-    size:letter portrait;
-    /* Suppress browser URL and date headers/footers */
-    margin-top: 0.35in;
-    margin-bottom: 0.35in;
-  }
+  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:8pt; background:#fff; padding:0.35in; }
+  @page{ margin:0; size:letter portrait; }
   @media screen{
     html{ background:#c8ccd4; }
     body{ max-width:760px; margin:0 auto; padding:20px; background:#fff; box-shadow:0 2px 16px rgba(0,0,0,.18); }
@@ -197,7 +191,18 @@ module.exports = async function(context, req) {
       <div class="total-row pink"><span style="font-size:10pt;">First Month Payment</span><span style="font-size:12pt;color:#BF0D3E;">${s.firstMonth||'$0.00'}</span></div>
       <div class="total-row blue"><span style="font-size:10pt;">Monthly Charge (recurring)</span><span style="font-size:12pt;">${s.monthly||'$0.00'}</span></div>
     </div>
-    <div style="font-size:8pt;color:#666;margin-top:4pt;">Initials: <strong>${s.initials||''}</strong> &nbsp;&nbsp; Unpaid balances incur a fee of the greater of $50 or 10% per month.</div>
+    <div style="font-size:8pt;color:#666;margin-top:4pt;">
+  <strong>Initials:</strong>
+  ${(function(){
+    var parts = (s.initials||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+    return '<span style="display:inline-flex;gap:12pt;margin-left:6pt;">'
+      +(parts[0]?'<span>Payment: <strong style="font-family:cursive;font-size:10pt;">'+parts[0]+'</strong></span>':'')
+      +(parts[1]?'<span>T&amp;C: <strong style="font-family:cursive;font-size:10pt;">'+parts[1]+'</strong></span>':'')
+      +(parts[2]?'<span>Authorization: <strong style="font-family:cursive;font-size:10pt;">'+parts[2]+'</strong></span>':'')
+      +'</span>';
+  })()}
+  &nbsp;&nbsp; Unpaid balances incur a fee of the greater of $50 or 10% per month.
+</div>
   </div>
 
   <div class="ftr">
@@ -241,7 +246,9 @@ module.exports = async function(context, req) {
     <div>
       <div class="sig-block">
         <label>Authorized Agent Signature</label>
-        <div class="sig-line"></div>
+        <div style="min-height:28pt;border-bottom:1.25pt solid #1a1a2e;display:flex;align-items:flex-end;padding-bottom:2pt;margin-bottom:3pt;">
+          <span style="font-family:'Dancing Script',cursive;font-size:22pt;color:#00205B;line-height:1;">${s.sigName||''}</span>
+        </div>
         <div class="sig-sub">Print Name: <strong>${s.sigName||''}</strong></div>
         <div class="sig-sub">Title: ${s.sigTitle||''}</div>
         <div class="sig-sub">Date: ${s.signedDate||''}</div>
@@ -251,7 +258,9 @@ module.exports = async function(context, req) {
     <div>
       <div class="sig-block">
         <label>Texan Local Representative</label>
-        <div class="sig-line"></div>
+        <div style="min-height:28pt;border-bottom:1.25pt solid #1a1a2e;display:flex;align-items:flex-end;padding-bottom:2pt;margin-bottom:3pt;">
+          <span style="font-family:'Dancing Script',cursive;font-size:22pt;color:#00205B;line-height:1;">${record.repSig ? record.repSig.name : (s.repSigName||'Josh Knight')}</span>
+        </div>
         <div class="sig-sub">Print Name: <strong>${record.repSig ? record.repSig.name : (s.repSigName||'Josh Knight')}</strong></div>
         <div class="sig-sub">Title: ${record.repSig ? record.repSig.title : (s.repSigTitle||'Owner')} &mdash; Knight Dynamic Solutions, LLC</div>
         <div class="sig-sub">Date: ${record.countersignedAt ? new Date(record.countersignedAt).toLocaleDateString('en-US') : (s.signedDate||'')}</div>
