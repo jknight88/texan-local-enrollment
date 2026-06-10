@@ -53,6 +53,7 @@ tbody td{padding:8px;vertical-align:middle;}
 .badge.opened{background:#fff3e0;color:#e65100;}
 .badge.signed{background:#e8f5e9;color:#1a5c1a;}
 .badge.inperson{background:#f3e5f5;color:#6a0dad;}
+.badge.client_signed{background:#fff3e0;color:#e65100;}
 .empty{text-align:center;padding:3rem;color:var(--md);font-size:13px;}
 .btn-sm{padding:3px 9px;border-radius:3px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-block;margin:1px;}
 .btn-view{background:var(--bl);color:#fff;}
@@ -287,7 +288,8 @@ function handleBtn(el) {
   var biz    = el.getAttribute('data-biz') || '';
   var action = el.getAttribute('data-act');
   if(action === 'view') viewDoc(sid);
-  else if(action === 'pdf')  window.open('/api/getPdf?id='+sid+'&key='+encodeURIComponent(DASH_KEY), '_blank');
+  else if(action === 'pdf')         window.open('/api/getPdf?id='+sid+'&key='+encodeURIComponent(DASH_KEY), '_blank');
+  else if(action === 'countersign') window.open('/countersign?id='+sid+'&key='+encodeURIComponent(DASH_KEY), '_blank');
   else if(action === 'edit') editForm(sid);
   else if(action === 'del')  deleteForm(sid, biz, el.getAttribute('data-signed'));
 }
@@ -313,7 +315,7 @@ function renderTable() {
   });
   if(!rows.length){ document.getElementById('table-wrap').innerHTML='<div class="empty">No records found.</div>'; return; }
   var html = '<table><thead><tr>'
-    +'<th>Business</th><th>Email</th><th>Term</th><th>Monthly</th><th>Method</th>'
+    +'<th>Rep</th><th>Business</th><th>Email</th><th>Term</th><th>Monthly</th><th>Method</th>'
     +'<th>Sent</th><th>First Opened</th><th>Last Opened</th><th>Opens</th>'
     +'<th>Verified</th><th>Signed</th><th>Status</th><th>Actions</th>'
     +'</tr></thead><tbody>';
@@ -325,11 +327,13 @@ function renderTable() {
     var bname = esc(r.bizName||'');
     var actions = '<div style="display:flex;gap:3px;flex-wrap:wrap;">';
     if(isSigned) actions += '<button class="btn-sm btn-view" data-sid="'+sid+'" data-act="view" onclick="handleBtn(this)">&#128196; View</button>';
+    if(r.status==='client_signed') actions += '<button class="btn-sm" style="background:#f5a623;color:#fff;" data-sid="'+sid+'" data-act="countersign" onclick="handleBtn(this)">&#9998; Countersign</button>';
     if(isSigned) actions += '<button class="btn-sm" style="background:#2a7a2a;color:#fff;" data-sid="'+sid+'" data-act="pdf" onclick="handleBtn(this)">&#128438; PDF</button>';
     actions += '<button class="btn-sm btn-edit" data-sid="'+sid+'" data-act="edit" onclick="handleBtn(this)">&#9998; Edit</button>';
     actions += '<button class="btn-sm btn-del" data-sid="'+sid+'" data-biz="'+bname+'" data-signed="'+(isSigned?'1':'0')+'" data-act="del" onclick="handleBtn(this)">&#128465;</button>';
     actions += '</div>';
     html += '<tr>'
+      +'<td style="text-align:center;font-weight:700;color:var(--bl);">'+(r.rep||'&mdash;')+'</td>'
       +'<td><strong>'+esc(r.bizName||'')+'</strong>'+(isIP?'<br><span style="font-size:9px;color:#6a0dad;">In-Person</span>':'')+'</td>'
       +'<td>'+esc(r.clientEmail||'&mdash;')+'</td>'
       +'<td>'+(r.term||'&mdash;')+'</td>'
@@ -341,7 +345,7 @@ function renderTable() {
       +'<td style="text-align:center;">'+(r.openCount||0)+'</td>'
       +'<td style="white-space:nowrap;font-size:11px;">'+(r.verifiedAt?'<span style="color:#1a5c1a;">&#10003;</span> '+fmtDate(r.verifiedAt):'<span style="color:#aaa;">Pending</span>')+'</td>'
       +'<td style="white-space:nowrap;font-size:11px;">'+(isSigned?'<span '+auditTip+' style="color:#1a5c1a;cursor:help;">&#10003; '+fmtDate(r.signedAt)+(r.auditHash?' &#128274;':'')+'</span>':'<span style="color:#aaa;">Not yet</span>')+'</td>'
-      +'<td><span class="badge '+(isSigned?(isIP?'inperson':'signed'):r.status)+'">'+(isSigned&&isIP?'In-Person':r.status)+'</span></td>'
+      +'<td><span class="badge '+(isSigned?(isIP?'inperson':'signed'):r.status)+'">'+(isSigned?(isIP?'In-Person':'Signed'):(r.status==='client_signed'?'Awaiting Rep':r.status))+'</span></td>'
       +'<td>'+actions+'</td>'
       +'</tr>';
   });
