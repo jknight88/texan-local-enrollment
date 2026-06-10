@@ -121,8 +121,7 @@ module.exports = async function(context, req) {
     </div>
     <p style="font-size:13px;line-height:1.6;color:#333;margin:0 0 16px;">
       Hi <strong>${record.bizName}</strong>,<br><br>
-      Both parties have now signed your Texan Local Advertising Enrollment Agreement.
-      Your agreement is fully executed and on file. Click the button below to view and save your signed copy.
+      Your Texan Local Advertising Enrollment Agreement is now complete. Click the button below to view and save your signed copy. Thank you again and welcome to the Texan Local Family!
     </p>
     <div style="text-align:center;margin:24px 0;">
       <a href="${pdfUrl}" style="display:inline-block;background:#00205B;color:#fff;padding:14px 32px;border-radius:5px;text-decoration:none;font-size:14px;font-weight:700;">
