@@ -1,4 +1,5 @@
-// POST /api/deleteForm 
+// FOLDER: api/deleteForm/index.js
+// POST /api/deleteForm
 // action: "soft"   → moves record to trash (default, recoverable for 60 days)
 // action: "restore" → moves record back from trash to active
 // action: "purge"  → permanently deletes (only if already in trash)
@@ -19,7 +20,10 @@ module.exports = async function(context, req) {
   let body = req.body || {};
   if (typeof body === "string") { try { body = JSON.parse(body); } catch(e) { body = {}; } }
 
-  const { id, key, action } = body;
+  // Accept key from body OR query string
+  const id     = body.id     || req.query.id;
+  const key    = body.key    || req.query.key;
+  const action = body.action || req.query.action;
   context.log("deleteForm:", { id, action, keyMatch: key === DASHBOARD_KEY });
 
   if (key !== DASHBOARD_KEY) {
