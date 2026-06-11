@@ -1,160 +1,19 @@
 {
   "routes": [
-    {
-      "route": "/api/*",
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/saveAndSignInPerson",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/trackOpen",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/verifyEmail",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/countersign",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/submitSigned",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/getPdf",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/getForm",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/saveForm",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/getDashboard",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/updateForm",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/api/deleteForm",
-      "methods": [
-        "GET",
-        "POST",
-        "OPTIONS"
-      ],
-      "allowedRoles": [
-        "anonymous"
-      ]
-    },
-    {
-      "route": "/",
-      "rewrite": "/index.html"
-    },
-    {
-      "route": "/dashboard",
-      "rewrite": "/dashboard/index.html"
-    },
-    {
-      "route": "/sign*",
-      "rewrite": "/sign.html"
-    },
-    {
-      "route": "/inperson",
-      "rewrite": "/inperson.html"
-    },
-    {
-      "route": "/countersign*",
-      "rewrite": "/countersign.html"
-    }
+    { "route": "/",             "rewrite": "/index.html" },
+    { "route": "/dashboard",    "rewrite": "/dashboard/index.html" },
+    { "route": "/sign*",        "rewrite": "/sign.html" },
+    { "route": "/inperson",     "rewrite": "/inperson.html" },
+    { "route": "/countersign*", "rewrite": "/countersign.html" }
   ],
-  "responseOverrides": {},
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "*.{css,scss,js,png,gif,ico,jpg,svg,json,woff,woff2,ttf}"]
+  },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "strict-origin-when-cross-origin"
   },
-  "platform": {
-    "apiRuntime": "node:22"
-  }
+  "platform": { "apiRuntime": "node:22" }
 }
