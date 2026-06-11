@@ -1,4 +1,3 @@
-// FOLDER: api/deleteForm/index.js
 // POST /api/deleteForm
 // action: "soft"   → moves record to trash (default, recoverable for 60 days)
 // action: "restore" → moves record back from trash to active
