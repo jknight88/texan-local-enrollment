@@ -1,4 +1,4 @@
-// GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page 
+// GET  /api/countersign?id=SESSION_ID&key=DASHBOARD_KEY  → returns session data for rep countersign page
 // POST /api/countersign  { sessionId, repSigName, repSigTitle, key } → finalizes agreement, emails client PDF link
 const { BlobServiceClient } = require("@azure/storage-blob");
 const crypto              = require("crypto");
@@ -88,6 +88,7 @@ module.exports = async function(context, req) {
     record.repSig = {
       name:  body.repSigName  || "Josh Knight",
       title: body.repSigTitle || "Owner",
+      image: body.repSigImage || '',
       date:  now
     };
 
