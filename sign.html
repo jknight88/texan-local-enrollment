@@ -455,7 +455,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
     <div class="gr c4">
       <div class="f" id="fw-cbill" style="grid-column:span 2"><label class="lb">Billing Address<span class="req">*</span></label><input id="f-cbill" type="text"><div class="errmsg">Required</div></div>
       <div class="f" id="fw-cbzip"><label class="lb">Billing ZIP<span class="req">*</span></label><input id="f-cbzip" type="text" maxlength="5" inputmode="numeric" placeholder="00000" oninput="enforceDigits(this,5)"><div class="errmsg">5-digit ZIP</div></div>
-      <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="enforceRange(this,4,17)"><div class="errmsg">3-4 digits</div></div>
+      <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="enforceCVV(this)"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
     <div class="warn" style="margin-top:4px;">&#9733; Unpaid balances (including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /month.</div>
@@ -572,15 +572,31 @@ async function loadSession(){
     // trackOpen - don't block on failure
     fetch('/api/trackOpen',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:SESSION_ID})}).catch(function(){});
 
-    // 15-second timeout
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function(){ controller.abort(); }, 15000);
+    // Retry with backoff to handle Azure cold starts (can take 20-30s)
     var resp;
-    try {
-      resp = await fetch('/api/getForm?id='+SESSION_ID, { signal: controller.signal });
-    } finally {
-      clearTimeout(timeoutId);
+    var lastErr;
+    for(var attempt=0; attempt<3; attempt++){
+      try{
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function(){ controller.abort(); }, 35000);
+        try{
+          resp = await fetch('/api/getForm?id='+SESSION_ID, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          break; // success
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      } catch(e){
+        lastErr = e;
+        if(attempt < 2){
+          // Update loading message to reassure user
+          var pl=document.getElementById('page-loading');
+          if(pl){ var box=pl.querySelector('div'); if(box){ var sp=box.querySelector('.spinner'); box.innerHTML='<div class="spinner" style="width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div><div style="font-size:14px;opacity:.85;">Server waking up… retrying ('+(attempt+2)+'/3)</div>'; }}
+          await new Promise(function(r){ setTimeout(r, 5000); });
+        }
+      }
     }
+    if(!resp){ throw lastErr || new Error('Server unavailable after 3 attempts. Please wait 30 seconds and try your link again.'); }
     var rawText = await resp.text();
     var data;
     try {
