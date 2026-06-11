@@ -65,7 +65,7 @@ module.exports = async function(context, req) {
     const pay = maskPayment(s.payMethod, s.payDetail);
 
     // Parse initials - stored as JSON {payment, tc, auth} or legacy comma string
-    let initObj = {payment:'', tc:'', auth:''};
+    let initObj = {payment:'', tc:'', auth:'', adApproval:''};
     try {
       const raw = s.initials || '';
       if (raw.startsWith('{')) { initObj = JSON.parse(raw); }
@@ -117,6 +117,7 @@ module.exports = async function(context, req) {
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:${compact?'7pt':'8pt'}; background:#fff; padding:${compact?'0.22in':'0.35in'}; }
   @page{ margin:0; size:letter portrait; }
+  @media print{ @page{ margin:0.35in; } html, body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } a[href]:after{ content:none !important; } }
   @media screen{
     html{ background:#c8ccd4; }
     body{ max-width:760px; margin:0 auto; padding:20px; background:#fff; box-shadow:0 2px 16px rgba(0,0,0,.18); }
@@ -139,9 +140,9 @@ module.exports = async function(context, req) {
   table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
   table.dtbl td{ padding:${compact?'2pt 4pt':'3pt 6pt'}; border:0.75pt solid #c8cdd8; font-size:${compact?'7pt':'8pt'}; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
-  table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; }
-  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 4pt':'2.5pt 5pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  table.zones td{ padding:${compact?'1.5pt 4pt':'2.5pt 5pt'}; border:0.75pt solid #c8cdd8; }
+  table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; border:none; }
+  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none; border-bottom:0.5pt solid #eee; }
   .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:${compact?'2pt 0':'4pt 0'}; }
   .total-row{ display:flex; justify-content:space-between; align-items:center; padding:${compact?'2pt 6pt':'3pt 8pt'}; border-bottom:0.75pt solid #dde2ef; font-size:${compact?'7pt':'8pt'}; }
   .total-row:last-child{ border-bottom:none; }
@@ -207,6 +208,19 @@ module.exports = async function(context, req) {
     </div>
     ${zoneRows ? `<table class="zones"><thead><tr><th>Product</th><th>Zones</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:8.5pt;margin-top:3pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
+  </div>
+
+  <!-- AD APPROVALS -->
+  <div class="section">
+    <div class="sec-title">Ad Approvals</div>
+    <p style="font-size:${compact?'7pt':'8pt'};line-height:1.55;color:#333;margin-bottom:${compact?'2pt':'4pt'};">You will receive timely proofs for your ad placement. To meet our press deadlines, advertisers are bound by the <strong>&ldquo;ad approval process and terms&rdquo;</strong> and must comply with timely approval of ads. Full payment is due with or without an ad approval.</p>
+    <div style="font-size:${compact?'7pt':'8pt'};color:#555;display:flex;align-items:center;gap:12pt;">
+      <span>Ad Approvals Initials:</span>
+      ${(function(){
+        var ai=initObj.adApproval||'';
+        return ai ? '<strong style="font-family:\'Dancing Script\',cursive;font-size:13pt;color:#00205B;">'+ai+'</strong>' : '<span style="font-family:monospace;color:#bbb;">(not provided)</span>';
+      })()}
+    </div>
   </div>
 
   <!-- PAYMENT AUTHORIZATION -->
