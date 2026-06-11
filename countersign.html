@@ -205,10 +205,15 @@ async function completeSigning(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        sessionId:   SESSION_ID,
-        key:         AUTH_KEY,
-        repSigName:  sigName,
-        repSigTitle: sigTitle
+        sessionId:    SESSION_ID,
+        key:          AUTH_KEY,
+        repSigName:   sigName,
+        repSigTitle:  sigTitle,
+        repSigImage:  (function(){
+          var c=document.getElementById('rep-canvas');
+          if(!c) return '';
+          try{ return c.toDataURL('image/png'); }catch(e){ return ''; }
+        })()
       })
     });
     var rawText = await resp.text();
