@@ -89,17 +89,17 @@ module.exports = async function(context, req) {
           const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
         }
-        // Deduplicate by zone name — collect all products per zone
-        var existingZone = zoneRowData.find(function(r){ return r.name===name; });
-        if(existingZone){ if(existingZone.products.indexOf(product)<0) existingZone.products.push(product); }
-        else { zoneRowData.push({name:name, products:[product]}); }
+        // Group by product — collect all zones for each product
+        var existingProduct = zoneRowData.find(function(r){ return r.product===product; });
+        if(existingProduct){ if(existingProduct.zones.indexOf(name)<0) existingProduct.zones.push(name); }
+        else { zoneRowData.push({product:product, zones:[name]}); }
       });
     }
-    // Build zone rows HTML from deduplicated data
+    // Build zone rows HTML grouped by product
     zoneRowData.forEach(function(r){
       zoneRows += '<tr>'
-        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;font-weight:700;">' + r.name + '</td>'
-        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + r.products.join(', ') + '</td>'
+        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;font-weight:700;">' + r.product + '</td>'
+        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + r.zones.join(', ') + '</td>'
         + '</tr>';
     });
     const zoneCount = fd.zones ? fd.zones.filter(z => z.product && parseFloat(z.rate||0)>0).length : 0;
@@ -205,7 +205,7 @@ module.exports = async function(context, req) {
           +'</span>';
       })()}
     </div>
-    ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product(s)</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
+    ${zoneRows ? `<table class="zones"><thead><tr><th>Product</th><th>Zones</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:8.5pt;margin-top:3pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
   </div>
 
