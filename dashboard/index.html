@@ -299,30 +299,56 @@ function doLogin(){
 }
 
 function loadData(){
-  fetch('/api/getDashboard?key='+encodeURIComponent(DASH_KEY))
-    .then(function(r){ return r.text().then(function(t){ return {status:r.status,text:t}; }); })
-    .then(function(result){
-      var btn = document.getElementById('login-btn');
-      btn.disabled = false; btn.textContent = 'Access Dashboard';
-      var data;
-      try{ data = JSON.parse(result.text); }catch(e){ data={error:'Bad response'}; }
-      if(result.status===401){ DASH_KEY=''; showMsg('Incorrect password.','err'); return; }
-      if(result.status!==200){ showMsg('Error '+(data.error||result.status),'err'); return; }
-      DASH_DATA = Array.isArray(data) ? data : [];
-      document.getElementById('login-gate').style.display='none';
-      document.getElementById('dashboard').style.display='block';
-      document.getElementById('login-msg').style.display='none';
-      renderStats();
-      renderTabCounts();
-      if(ACTIVE_TAB === 'trash'){ loadTrash(); } else { renderTable(); }
-      loadTrashCount();
-      document.getElementById('last-updated').textContent='Last updated: '+new Date().toLocaleTimeString();
-    })
-    .catch(function(err){
-      var btn=document.getElementById('login-btn');
-      btn.disabled=false; btn.textContent='Access Dashboard';
-      showMsg('Network error: '+err.message,'err');
-    });
+  var btn = document.getElementById('login-btn');
+  var attempt = 0;
+  var maxAttempts = 3;
+
+  function tryFetch(){
+    attempt++;
+    if(btn && document.getElementById('login-gate').style.display !== 'none'){
+      btn.disabled = true;
+      btn.textContent = attempt > 1 ? 'Retrying ('+attempt+'/'+maxAttempts+')…' : 'Connecting…';
+      showMsg(attempt > 1 ? 'Server waking up, retrying…' : 'Connecting…', 'info');
+    }
+
+    fetch('/api/getDashboard?key='+encodeURIComponent(DASH_KEY))
+      .then(function(r){ return r.text().then(function(t){ return {status:r.status, text:t}; }); })
+      .then(function(result){
+        if(btn){ btn.disabled=false; btn.textContent='Access Dashboard'; }
+        // If we got HTML back the API isn't reachable yet
+        if(result.text.trim().startsWith('<')){
+          if(attempt < maxAttempts){
+            setTimeout(tryFetch, 6000);
+          } else {
+            showMsg('API unreachable after '+maxAttempts+' attempts. Check host.json is deployed and try again.','err');
+          }
+          return;
+        }
+        var data;
+        try{ data = JSON.parse(result.text); }catch(e){ data={error:'Bad response: '+result.text.substring(0,80)}; }
+        if(result.status===401){ DASH_KEY=''; showMsg('Incorrect password.','err'); return; }
+        if(result.status!==200){
+          if(attempt < maxAttempts){ setTimeout(tryFetch, 6000); return; }
+          showMsg('Error '+(data.error||result.status),'err'); return;
+        }
+        DASH_DATA = Array.isArray(data) ? data : [];
+        document.getElementById('login-gate').style.display='none';
+        document.getElementById('dashboard').style.display='block';
+        document.getElementById('login-msg').style.display='none';
+        renderStats();
+        renderTabCounts();
+        if(ACTIVE_TAB === 'trash'){ loadTrash(); } else { renderTable(); }
+        loadTrashCount();
+        document.getElementById('last-updated').textContent='Last updated: '+new Date().toLocaleTimeString();
+      })
+      .catch(function(err){
+        if(btn){ btn.disabled=false; btn.textContent='Access Dashboard'; }
+        if(attempt < maxAttempts){ setTimeout(tryFetch, 6000); return; }
+        showMsg('Network error: '+err.message,'err');
+      });
+  }
+
+  tryFetch();
 }
 
 // ── TABS ───────────────────────────────────────────────────────────────────
