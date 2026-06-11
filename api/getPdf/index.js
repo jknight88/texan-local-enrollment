@@ -75,6 +75,7 @@ module.exports = async function(context, req) {
 
     // Build zone rows from saved zones data
     let zoneRows = '';
+    let zoneRowData = [];
     if (fd.zones && fd.zones.length > 0) {
       fd.zones.forEach(z => {
         const name    = z.zoneName   || z.id || '';
@@ -88,14 +89,19 @@ module.exports = async function(context, req) {
           const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
           startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
         }
-        zoneRows += '<tr>'
-          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + name + '</td>'
-          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + product + '</td>'
-          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:center;">' + startFmt + '</td>'
-          + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;text-align:right;">$' + parseFloat(rate).toFixed(2) + '/mo</td>'
-          + '</tr>';
+        // Deduplicate by zone name — collect all products per zone
+        var existingZone = zoneRowData.find(function(r){ return r.name===name; });
+        if(existingZone){ if(existingZone.products.indexOf(product)<0) existingZone.products.push(product); }
+        else { zoneRowData.push({name:name, products:[product]}); }
       });
     }
+    // Build zone rows HTML from deduplicated data
+    zoneRowData.forEach(function(r){
+      zoneRows += '<tr>'
+        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;font-weight:700;">' + r.name + '</td>'
+        + '<td style="padding:3pt 5pt;border:0.75pt solid #c8cdd8;font-size:8pt;">' + r.products.join(', ') + '</td>'
+        + '</tr>';
+    });
     const zoneCount = fd.zones ? fd.zones.filter(z => z.product && parseFloat(z.rate||0)>0).length : 0;
     // Compress page 1 when many zones fill the page
     const compact = zoneCount >= 6;
@@ -187,11 +193,19 @@ module.exports = async function(context, req) {
   <!-- ENROLLMENT SUMMARY -->
   <div class="section">
     <div class="sec-title">Enrollment Summary</div>
-    <div style="margin-bottom:${compact?'3pt':'6pt'};">
-      <span style="font-size:${compact?'6.5pt':'7.5pt'};font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Selected Term:</span>
-      <span style="font-size:${compact?'10pt':'12pt'};font-weight:700;color:#00205B;margin-left:4pt;">${fd.term||''}</span>
+    <div style="margin-bottom:${compact?'3pt':'5pt'};">
+      ${(function(){
+        var tv=(fd.term||'').toString().trim();
+        var tm={'6':'Limited','6 months':'Limited','12':'Premium','12 months':'Premium','24':'Elite','24 months':'Elite'};
+        var mo={'6':'6 mo','6 months':'6 mo','12':'12 mo','12 months':'12 mo','24':'24 mo','24 months':'24 mo'};
+        var nm=tm[tv]||tv; var ms=mo[tv]||'';
+        return '<span style="display:inline-flex;align-items:center;gap:4pt;padding:2pt 10pt;border:1.25pt solid #00205B;border-radius:3pt;background:#edf0f7;">'
+          +'<span style="font-size:${compact?\'9pt\':\'10pt\'};font-weight:700;color:#00205B;">'+nm+'</span>'
+          +(ms?'<span style="font-size:${compact?\'7pt\':\'8pt\'};color:#4a4f5e;margin-left:3pt;">'+ms+'</span>':'')
+          +'</span>';
+      })()}
     </div>
-    ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product</th><th style="text-align:center;">Start</th><th style="text-align:right;">Rate/Mo</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
+    ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product(s)</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:8.5pt;margin-top:3pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
   </div>
 
@@ -203,8 +217,11 @@ module.exports = async function(context, req) {
       ${pay.rows}
     </table>
     <div style="font-size:${compact?'7pt':'8pt'};color:#666;margin-top:${compact?'2pt':'3pt'};display:flex;align-items:center;justify-content:space-between;">
-      <span>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</span>
-      <span style="white-space:nowrap;">Initials: ${initSig(initObj.payment)}</span>
+      <div>
+        <div>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</div>
+        <div style="margin-top:2pt;">Unpaid balance (Including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /Month.</div>
+      </div>
+
     </div>
   </div>
 
@@ -217,10 +234,7 @@ module.exports = async function(context, req) {
       <div class="total-row pink"><span style="font-size:10pt;">First Month Payment</span><span style="font-size:12pt;color:#BF0D3E;">${s.firstMonth||'$0.00'}</span></div>
       <div class="total-row blue"><span style="font-size:10pt;">Monthly Charge (recurring)</span><span style="font-size:12pt;">${s.monthly||'$0.00'}</span></div>
     </div>
-    <div style="font-size:8pt;color:#666;margin-top:4pt;display:flex;align-items:center;justify-content:space-between;">
-      <span>Unpaid balances incur a fee of the greater of $50 or 10% per month.</span>
-      <span style="white-space:nowrap;">Authorization Initials: ${initSig(initObj.auth)}</span>
-    </div>
+
   </div>
 
   <div class="ftr">
@@ -270,18 +284,14 @@ module.exports = async function(context, req) {
         <div class="sig-sub">Print Name: <strong>${s.sigName||''}</strong></div>
         <div class="sig-sub">Title: ${s.sigTitle||''}</div>
         <div class="sig-sub">Date: ${s.signedDate||''}</div>
-        <div class="sig-sub" style="display:flex;gap:12pt;">
-          <span>Payment: ${initSig(initObj.payment)}</span>
-          <span>T&amp;C: ${initSig(initObj.tc)}</span>
-          <span>Auth: ${initSig(initObj.auth)}</span>
-        </div>
+
       </div>
     </div>
     <div>
       <div class="sig-block">
         <label>Texan Local Representative</label>
-        <div style="min-height:28pt;border-bottom:1.25pt solid #1a1a2e;display:flex;align-items:flex-end;padding-bottom:2pt;margin-bottom:3pt;">
-          <span style="font-family:'Dancing Script',cursive;font-size:22pt;color:#00205B;line-height:1;">${record.repSig ? record.repSig.name : (s.repSigName||'Josh Knight')}</span>
+        <div style="min-height:36pt;border-bottom:1.25pt solid #1a1a2e;margin-bottom:3pt;overflow:hidden;">
+          ${(record.repSig && record.repSig.image) ? '<img src="'+record.repSig.image+'" style="max-height:36pt;max-width:100%;object-fit:contain;object-position:left bottom;" />' : '<span style="font-family:\'Dancing Script\',cursive;font-size:22pt;color:#00205B;line-height:1;">' + (record.repSig ? record.repSig.name : (s.repSigName||'Josh Knight')) + '</span>'}
         </div>
         <div class="sig-sub">Print Name: <strong>${record.repSig ? record.repSig.name : (s.repSigName||'Josh Knight')}</strong></div>
         <div class="sig-sub">Title: ${record.repSig ? record.repSig.title : (s.repSigTitle||'Owner')} &mdash; Knight Dynamic Solutions, LLC</div>
