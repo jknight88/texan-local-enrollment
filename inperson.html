@@ -1046,8 +1046,19 @@ async function submitSigned(){
         monthly:    document.getElementById('d-monthly').textContent,
         initials:   JSON.stringify({payment:initPayment,tc:initTC,auth:initAuth,adApproval:initAdApproval}),
         sigImage:   (function(){
-          var sw=document.querySelector('.sigwrap'); 
+          // Use SIGN_FIELDS client-sig entry (updated by reinitPad)
+          try{ if(window.SIGN_FIELDS&&SIGN_FIELDS['client-sig']&&SIGN_FIELDS['client-sig'].el) return SIGN_FIELDS['client-sig'].el.toDataURL('image/png'); }catch(e){}
+          // fallback: first sigwrap canvas
+          var sw=document.getElementById('client-sig-wrap')||document.querySelector('.sigwrap');
           if(sw){ var cc=sw.querySelector('canvas'); if(cc) try{ return cc.toDataURL('image/png'); }catch(e){} }
+          return '';
+        })(),
+        repSigImage:(function(){
+          // Use SIGN_FIELDS rep-sig entry
+          try{ if(window.SIGN_FIELDS&&SIGN_FIELDS['rep-sig']&&SIGN_FIELDS['rep-sig'].el) return SIGN_FIELDS['rep-sig'].el.toDataURL('image/png'); }catch(e){}
+          // fallback: sc-rep directly
+          var c=document.getElementById('sc-rep');
+          if(c&&c.width>10) try{ return c.toDataURL('image/png'); }catch(e){}
           return '';
         })(),
         sigName:    sigName,
