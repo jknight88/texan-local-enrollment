@@ -611,7 +611,6 @@ function deleteForm(sessionId,bizName,isSigned){
   document.getElementById('del-session-id').value=sessionId;
   document.getElementById('del-is-signed').value=isSigned||'0';
   document.getElementById('del-bizname').textContent=bizName;
-  document.getElementById('del-signed-warn').style.display=(isSigned==='1'?'block':'none');
   document.getElementById('del-err').style.display='none';
   document.getElementById('del-modal').style.display='flex';
 }
