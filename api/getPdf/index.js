@@ -71,7 +71,7 @@ module.exports = async function(context, req) {
       if (raw.startsWith('{')) { initObj = JSON.parse(raw); }
       else { const p = raw.split(',').map(x=>x.trim()); initObj = {payment:p[0]||'',tc:p[1]||'',auth:p[2]||''}; }
     } catch(e) {}
-    const initSig = (v) => v ? `<strong style="font-family:'Dancing Script',cursive;font-size:13pt;color:#00205B;">${v}</strong>` : '&mdash;';
+    const initSig = (v) => v ? `<strong style="font-family:'Dancing Script',cursive;font-size:11pt;color:#00205B;font-weight:700;">${v}</strong>` : '<span style="color:#bbb;font-size:7.5pt;">—</span>';
 
     // Build zone rows from saved zones data
     let zoneRows = '';
@@ -151,7 +151,7 @@ module.exports = async function(context, req) {
   .sec-title{ background:#00205B; color:#fff; font-size:6.5pt; font-weight:700; letter-spacing:.8pt; text-transform:uppercase; padding:2pt 10pt; margin:0 -10pt 5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:4pt; }
   .field label{ display:block; font-size:${compact?'6pt':'6.5pt'}; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:${compact?'0':'1pt'}; }
-  .field .val{ font-size:${compact?'7pt':'8pt'}; border-bottom:0.75pt solid #c8cdd8; padding:${compact?'0':'1pt 0'}; min-height:${compact?'9pt':'11pt'}; }
+  .field .val{ font-size:${compact?'7pt':'8pt'}; padding:${compact?'0':'1pt 0'}; min-height:${compact?'9pt':'11pt'}; }
   table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
   table.dtbl td{ padding:${compact?'2pt 4pt':'3pt 6pt'}; border:0.75pt solid #c8cdd8; font-size:${compact?'7pt':'8pt'}; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
@@ -229,12 +229,9 @@ module.exports = async function(context, req) {
   <div class="section">
     <div class="sec-title">Ad Approvals</div>
     <p style="font-size:${compact?'7pt':'8pt'};line-height:1.55;color:#333;margin-bottom:${compact?'2pt':'4pt'};">You will receive timely proofs for your ad placement. To meet our press deadlines, advertisers are bound by the <strong>&ldquo;ad approval process and terms&rdquo;</strong> and must comply with timely approval of ads. Full payment is due with or without an ad approval.</p>
-    <div style="font-size:${compact?'7pt':'8pt'};color:#555;display:flex;align-items:center;gap:12pt;">
-      <span>Ad Approvals Initials:</span>
-      ${(function(){
-        var ai=initObj.adApproval||'';
-        return ai ? '<strong style="font-family:\'Dancing Script\',cursive;font-size:13pt;color:#00205B;">'+ai+'</strong>' : '<span style="font-family:monospace;color:#bbb;">(not provided)</span>';
-      })()}
+    <div style="font-size:${compact?'7pt':'8pt'};color:#666;margin-top:4pt;display:flex;align-items:center;gap:8pt;">
+      <span style="font-weight:700;">Initials:</span>
+      ${initSig(initObj.adApproval)}
     </div>
   </div>
 
@@ -249,8 +246,8 @@ module.exports = async function(context, req) {
       <div>
         <div>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</div>
         <div style="margin-top:2pt;">Unpaid balance (Including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /Month.</div>
-        <div style="margin-top:4pt;display:flex;align-items:center;gap:8pt;">
-          <span style="font-weight:700;font-size:${compact?'7pt':'8pt'};">Payment Initials:</span>
+        <div style="margin-top:4pt;display:flex;align-items:center;gap:8pt;font-size:${compact?'7pt':'8pt'};">
+          <span style="font-weight:700;">Initials:</span>
           ${initSig(initObj.payment)}
         </div>
       </div>
@@ -268,7 +265,7 @@ module.exports = async function(context, req) {
       <div class="total-row blue"><span style="font-size:10pt;">Monthly Charge (recurring)</span><span style="font-size:12pt;">${s.monthly||'$0.00'}</span></div>
     </div>
     <div style="margin-top:4pt;display:flex;align-items:center;gap:8pt;font-size:${compact?'7pt':'8pt'};">
-      <span style="font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.3pt;">Payment Authorization Initials:</span>
+      <span style="font-weight:700;">Initials:</span>
       ${initSig(initObj.auth)}
     </div>
   </div>
@@ -295,8 +292,8 @@ module.exports = async function(context, req) {
     <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">In the event of nonpayment, chargeback, returned payment, breach, or other default, Company may immediately suspend all services without further notice. Such suspension shall not relieve Client of any payment obligations. Upon default, all unpaid amounts, termination fees, and charges shall immediately become due and payable. In the event of a chargeback, payment dispute, returned ACH, insufficient funds, revoked payment authorization, or other payment reversal initiated by Client, such action constitutes a default and all recovery costs shall be immediately due and payable by Client.</p>
     <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">Client shall receive reasonable opportunities to review and approve advertising materials prior to publication. If Client fails to provide approvals, revisions, artwork, or required materials by Company&rsquo;s stated deadlines, Company may publish the most recently approved version, utilize materials previously supplied, or omit the advertisement without relieving Client of any payment obligations. The individual signing personally, unconditionally, and irrevocably guarantees payment and performance of all obligations. Client and guarantor agree to reimburse Company for all enforcement costs including reasonable attorney&rsquo;s fees, court costs, filing fees, collection agency fees, and other collection-related expenses.</p>
     <p style="font-size:7.5pt;line-height:1.5;text-align:justify;">This Agreement constitutes the entire agreement between the parties. Electronic signatures shall be deemed original signatures and shall be fully binding and enforceable under the federal ESIGN Act and UETA. Company shall not be liable for delays caused by events beyond its reasonable control. This Agreement shall be governed by the laws of the State of Texas; exclusive venue for any dispute shall be the state courts located in Comal County, Texas. The prevailing party in any action arising from this Agreement shall be entitled to recover its reasonable attorney&rsquo;s fees and costs.</p>
-    <div style="margin-top:6pt;display:flex;align-items:center;gap:8pt;padding:4pt 0;border-top:0.75pt solid #dde2ef;">
-      <span style="font-size:7.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.3pt;">I have read and agree to the Terms &amp; Conditions &mdash; Initials:</span>
+    <div style="margin-top:6pt;display:flex;align-items:center;gap:8pt;padding:4pt 0;border-top:0.75pt solid #dde2ef;font-size:${compact?'7pt':'8pt'};">
+      <span style="font-weight:700;">Initials:</span>
       ${initSig(initObj.tc)}
     </div>
   </div>
@@ -324,11 +321,7 @@ module.exports = async function(context, req) {
         <div class="sig-sub">Print Name: <strong>${s.sigName||''}</strong></div>
         <div class="sig-sub">Title: ${s.sigTitle||''}</div>
         <div class="sig-sub">Date: ${s.signedDate||''}</div>
-        <div class="sig-sub" style="margin-top:4pt;display:flex;gap:10pt;flex-wrap:wrap;">
-          <span>T&amp;C: ${initSig(initObj.tc)}</span>
-          <span>Auth: ${initSig(initObj.auth)}</span>
-          <span>Ad Approval: ${initSig(initObj.adApproval)}</span>
-        </div>
+
       </div>
     </div>
     <div>
