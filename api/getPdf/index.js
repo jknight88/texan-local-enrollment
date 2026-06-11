@@ -150,13 +150,13 @@ module.exports = async function(context, req) {
   .section{ padding:${compact?'2pt 8pt':'4pt 10pt'}; border-bottom:1pt solid #dde2ef; }
   .sec-title{ background:#00205B; color:#fff; font-size:6.5pt; font-weight:700; letter-spacing:.8pt; text-transform:uppercase; padding:2pt 10pt; margin:0 -10pt 5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:4pt; }
-  .field label{ display:block; font-size:${compact?'6pt':'6.5pt'}; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:${compact?'0':'1pt'}; }
+  .field label{ display:block; font-size:${compact?'6pt':'6.5pt'}; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:${compact?'0':'1pt'}; border-bottom:0.6pt solid #c8cdd8; padding-bottom:1pt; }
   .field .val{ font-size:${compact?'7pt':'8pt'}; padding:${compact?'0':'1pt 0'}; min-height:${compact?'9pt':'11pt'}; }
   table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
   table.dtbl td{ padding:${compact?'2pt 4pt':'3pt 6pt'}; border:0.75pt solid #c8cdd8; font-size:${compact?'7pt':'8pt'}; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
   table.zones{ width:100%; border-collapse:separate; border-spacing:0; font-size:7.5pt; margin-bottom:4pt; border:none; outline:none; }
-  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none !important; outline:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  table.zones th{ background:#edf0f7; color:#4a4f5e; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none !important; outline:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none !important; outline:none !important; background:#fff; }
   .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:${compact?'2pt 0':'4pt 0'}; }
   .total-row{ display:flex; justify-content:space-between; align-items:center; padding:${compact?'2pt 6pt':'3pt 8pt'}; border-bottom:0.75pt solid #dde2ef; font-size:${compact?'7pt':'8pt'}; }
