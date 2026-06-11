@@ -573,13 +573,26 @@ function buildSummary(d){
   rightCI += lbl('Contact') + val(d.contact||'—');
   rightCI += lbl('Phone') + val(d.phone||'—');
   rightCI += lbl('Cell') + val(d.cell||'—');
-  rightCI += lbl('Email') + val(d.email||'—');
+  rightCI += lbl('Email') + val(d.email||d.clientEmail||'—');
   rightCI += '</div>';
   var ciEl = document.getElementById('client-info-summary');
   if(ciEl) ciEl.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;">' + leftCI + rightCI + '</div>';
 
   // Enrollment summary section
-  var termHtml = '<div style="margin-bottom:10px;">' + lbl('Selected Term') + '<div style="font-size:14px;font-weight:700;color:var(--bl);">' + esc(d.term||'') + '</div></div>';
+  var termMap = {'6': {name:'Limited', mo:'6 mo'}, '6 months': {name:'Limited', mo:'6 mo'}, '12': {name:'Premium', mo:'12 mo'}, '12 months': {name:'Premium', mo:'12 mo'}, '24': {name:'Elite', mo:'24 mo'}, '24 months': {name:'Elite', mo:'24 mo'}};
+  var termVal = (d.term||'').toString().trim();
+  var termInfo = termMap[termVal] || null;
+  var termHtml = '<div style="margin-bottom:10px;">';
+  termHtml += '<div style="font-size:9.5px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selected Term Package</div>';
+  termHtml += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].forEach(function(t){
+    var isSel = termInfo ? termInfo.name===t.name : (termVal===t.val||termVal===t.val+' months');
+    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border:1.5px solid ' + (isSel?'var(--bl)':'#c8cdd8') + ';border-radius:4px;background:' + (isSel?'#edf0f7':'#f9fafc') + ';white-space:nowrap;">';
+    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+t.name+'</span>';
+    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+t.mo+'</span>';
+    termHtml += '</div>';
+  });
+  termHtml += '</div></div>';
   var zones = d.zones || [];
   var activeZones = zones.filter(function(z){ return z.product && z.product !== '' && z.rate && parseFloat(z.rate) > 0; });
   var zonesHtml = '';
