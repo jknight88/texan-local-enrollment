@@ -128,6 +128,11 @@ module.exports = async function(context, req) {
       image: body.repSigImage || ''
     };
 
+    // Generate PDF token so client can access their PDF directly
+    const pdfToken = require("crypto").randomBytes(24).toString("hex");
+    record.pdfToken = pdfToken;
+    const pdfUrl = `${BASE_URL}/api/getPdf?id=${sessionId}&pdfToken=${pdfToken}`;
+
     // Save to blob storage
     const blobSvc   = BlobServiceClient.fromConnectionString(STORAGE_CONN);
     const container = blobSvc.getContainerClient(CONTAINER);
@@ -186,29 +191,29 @@ module.exports = async function(context, req) {
       })
     });
 
-    // Email copy to client if they have an email
+    // Email copy to client with PDF link
     if (fd.clientEmail) {
       const clientHtml = `
-<div style="font-family:Arial,sans-serif;max-width:600px;color:#1a1a2e;">
+<div style="font-family:Arial,sans-serif;max-width:580px;color:#1a1a2e;background:#ffffff;">
   <div style="background:#00205B;padding:18px 24px;border-bottom:4px solid #BF0D3E;">
     <div style="font-size:20px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Your Advertising Enrollment — Confirmation</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Your Enrollment Agreement is Fully Executed</div>
   </div>
-  <div style="padding:24px;background:#f5f7fa;">
-    <h2 style="font-size:17px;color:#00205B;margin:0 0 14px;">&#10003; Thank you, ${fd.bizName}!</h2>
+  <div style="padding:24px;background:#ffffff;">
+    <div style="background:#ffffff;border:2px solid #2a7a2a;border-radius:6px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;color:#2a7a2a;font-weight:700;line-height:1;">&#10003;</span>
+      <span style="font-size:15px;font-weight:700;color:#00205B;">Your Texan Local Advertising Enrollment Agreement is complete!</span>
+    </div>
     <p style="font-size:13px;line-height:1.6;color:#333;margin:0 0 16px;">
-      Your Texan Local Advertising Enrollment Agreement has been signed and is now on file.
-      A representative will be in touch soon regarding your first publication.
+      Hi <strong>${fd.bizName}</strong>,<br><br>
+      Your Texan Local Advertising Enrollment Agreement is now complete. Click the button below to view and save your signed copy. Thank you again and welcome to the Texan Local Family!
     </p>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;">
-      ${row("Business", fd.bizName)}
-      ${row("Term", fd.term||'')}
-      ${row("First Month Payment", body.firstMonth)}
-      ${row("Monthly Charge", body.monthly)}
-      ${row("Signed By", body.sigName)}
-      ${row("Date", body.signedDate)}
-    </table>
-    <p style="font-size:11px;color:#888;margin-top:16px;padding-top:12px;border-top:1px solid #dde2ef;">
+    <div style="text-align:center;margin:24px 0;">
+      <a href="${pdfUrl}" style="display:inline-block;background:#00205B;color:#fff;padding:14px 32px;border-radius:5px;text-decoration:none;font-size:14px;font-weight:700;">
+        &#128438; View &amp; Save Your Signed Agreement
+      </a>
+    </div>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:16px;">
       Questions? Contact us at <a href="mailto:${REP_EMAIL}" style="color:#00205B;">${REP_EMAIL}</a>
     </p>
   </div>
