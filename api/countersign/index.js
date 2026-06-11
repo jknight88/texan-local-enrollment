@@ -110,15 +110,15 @@ module.exports = async function(context, req) {
 
     // Email client with completion notice + PDF link
     const clientHtml = `
-<div style="font-family:Arial,sans-serif;max-width:580px;color:#1a1a2e;">
+<div style="font-family:Arial,sans-serif;max-width:580px;color:#1a1a2e;background:#ffffff;">
   <div style="background:#00205B;padding:18px 24px;border-bottom:4px solid #BF0D3E;">
     <div style="font-size:20px;font-weight:700;color:#fff;font-family:'Georgia',serif;">The Texan Local</div>
     <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Your Enrollment Agreement is Fully Executed</div>
   </div>
-  <div style="padding:24px;background:#f5f7fa;">
-    <div style="background:#1a5c1a;color:#fff;padding:14px 18px;border-radius:6px;margin-bottom:20px;">
-      <div style="font-size:22px;margin-bottom:6px;">&#10003;</div>
-      <div style="font-size:15px;font-weight:700;">Your Texan Local Advertising Enrollment Agreement is complete!</div>
+  <div style="padding:24px;background:#ffffff;">
+    <div style="background:#ffffff;border:2px solid #2a7a2a;border-radius:6px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;color:#2a7a2a;font-weight:700;line-height:1;">&#10003;</span>
+      <span style="font-size:15px;font-weight:700;color:#00205B;">Your Texan Local Advertising Enrollment Agreement is complete!</span>
     </div>
     <p style="font-size:13px;line-height:1.6;color:#333;margin:0 0 16px;">
       Hi <strong>${record.bizName}</strong>,<br><br>
@@ -129,7 +129,6 @@ module.exports = async function(context, req) {
         &#128438; View &amp; Save Your Signed Agreement
       </a>
     </div>
-
     <p style="font-size:11px;color:#aaa;text-align:center;margin-top:16px;">
       Questions? Contact us at <a href="mailto:${REP_EMAIL}" style="color:#00205B;">${REP_EMAIL}</a>
     </p>
