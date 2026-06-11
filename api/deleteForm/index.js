@@ -6,8 +6,12 @@ const CONTAINER     = "enrollments";
 const DASHBOARD_KEY = process.env.DASHBOARD_KEY || "changeme";
 
 module.exports = async function(context, req) {
-  if (req.method === "OPTIONS") { context.res={status:200}; return; }
-  const { id, key, force } = req.body || {};
+  if (req.method === "OPTIONS") { context.res={status:200,headers:{'Content-Type':'application/json'},body:"{}"}; return; }
+  // Parse body — Azure Functions may pass body as string or object
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch(e) { body = {}; } }
+  const { id, key, force } = body;
+  context.log("deleteForm called: id="+id+" key="+key+" force="+force);
   if (key !== DASHBOARD_KEY) { context.res={status:401,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:"Unauthorized"})}; return; }
   if (!id) { context.res={status:400,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:"Missing id"})}; return; }
   try {
