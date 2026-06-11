@@ -200,9 +200,11 @@ module.exports = async function(context, req) {
     <div style="font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;">Your Enrollment Agreement is Fully Executed</div>
   </div>
   <div style="padding:24px;background:#ffffff;">
-    <div style="background:#ffffff;border:2px solid #2a7a2a;border-radius:6px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:22px;color:#2a7a2a;font-weight:700;line-height:1;">&#10003;</span>
-      <span style="font-size:15px;font-weight:700;color:#00205B;">Your Texan Local Advertising Enrollment Agreement is complete!</span>
+    <div style="background:#ffffff;border:2px solid #2a7a2a;border-radius:6px;padding:14px 18px;margin-bottom:20px;">
+      <table cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="vertical-align:middle;padding-right:10px;font-size:22px;color:#2a7a2a;font-weight:700;line-height:1;">&#10003;</td>
+        <td style="vertical-align:middle;font-size:15px;font-weight:700;color:#00205B;">Your Texan Local Advertising Enrollment Agreement is complete!</td>
+      </tr></table>
     </div>
     <p style="font-size:13px;line-height:1.6;color:#333;margin:0 0 16px;">
       Hi <strong>${fd.bizName}</strong>,<br><br>
