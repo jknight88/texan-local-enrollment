@@ -674,8 +674,8 @@ function renderTrash(rows){
       +'<td style="font-size:11px;white-space:nowrap;">'+fmtDate(r.deletedAt)+'</td>'
       +'<td style="font-weight:700;color:'+dayColor+';white-space:nowrap;">'+days+' days</td>'
       +'<td><div style="display:flex;gap:4px;">'
-        +'<button class="btn-sm" style="background:#1a5c1a;color:#fff;" onclick="restoreRecord(\'''+r.sessionId+'\')">&#8635; Restore</button>'
-        +'<button class="btn-sm btn-del" onclick="purgeRecord(\'''+r.sessionId+'\',\''+esc(r.bizName||'')+'\')">&#128293; Purge</button>'
+        +'<button class="btn-sm" style="background:#1a5c1a;color:#fff;" onclick="restoreRecord(\''+r.sessionId+'\')">&#8635; Restore</button>'
+        +'<button class="btn-sm btn-del" onclick="purgeRecord(\''+r.sessionId+'\',\''+esc(r.bizName||'')+'\')">&#128293; Purge</button>'
       +'</div></td>'
       +'</tr>';
   });
