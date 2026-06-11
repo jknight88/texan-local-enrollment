@@ -111,6 +111,7 @@ module.exports = async function(context, req) {
         sigImage:    body.sigImage || '',
         repSigName:  body.repSigName  || "Josh Knight",
         repSigTitle: body.repSigTitle || "Owner",
+        repSigImage: body.repSigImage || '',
         signedDate:  body.signedDate,
         consentAt:   body.consentAt,
         consentText: "I agree to conduct this transaction using electronic records and signatures.",
@@ -118,6 +119,13 @@ module.exports = async function(context, req) {
         userAgent:   req.headers["user-agent"] || "unknown",
         inPerson:    true
       }
+    };
+
+    // Set record.repSig so getPdf reads it identically to countersign flow
+    record.repSig = {
+      name:  body.repSigName  || "Josh Knight",
+      title: body.repSigTitle || "Owner",
+      image: body.repSigImage || ''
     };
 
     // Save to blob storage
