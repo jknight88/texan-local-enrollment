@@ -117,7 +117,7 @@ module.exports = async function(context, req) {
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:${compact?'7pt':'8pt'}; background:#fff; padding:${compact?'0.22in':'0.35in'}; }
   @page{ margin:0; size:letter portrait; }
-  @media print{ @page{ margin:0.35in; } html, body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } a[href]:after{ content:none !important; } }
+  @media print{ @page{ margin:0.35in; } html, body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } a[href]:after{ content:'' !important; display:none !important; } a[href]:before{ content:'' !important; display:none !important; } }
   @media screen{
     html{ background:#c8ccd4; }
     body{ max-width:760px; margin:0 auto; padding:20px; background:#fff; box-shadow:0 2px 16px rgba(0,0,0,.18); }
@@ -142,7 +142,7 @@ module.exports = async function(context, req) {
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
   table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; border:none; }
   table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none; border-bottom:0.5pt solid #eee; }
+  table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none; }
   .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:${compact?'2pt 0':'4pt 0'}; }
   .total-row{ display:flex; justify-content:space-between; align-items:center; padding:${compact?'2pt 6pt':'3pt 8pt'}; border-bottom:0.75pt solid #dde2ef; font-size:${compact?'7pt':'8pt'}; }
   .total-row:last-child{ border-bottom:none; }
@@ -234,6 +234,10 @@ module.exports = async function(context, req) {
       <div>
         <div>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</div>
         <div style="margin-top:2pt;">Unpaid balance (Including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /Month.</div>
+        <div style="margin-top:4pt;display:flex;align-items:center;gap:8pt;">
+          <span style="font-weight:700;font-size:${compact?'7pt':'8pt'};">Payment Initials:</span>
+          ${initSig(initObj.payment)}
+        </div>
       </div>
 
     </div>
@@ -298,7 +302,11 @@ module.exports = async function(context, req) {
         <div class="sig-sub">Print Name: <strong>${s.sigName||''}</strong></div>
         <div class="sig-sub">Title: ${s.sigTitle||''}</div>
         <div class="sig-sub">Date: ${s.signedDate||''}</div>
-
+        <div class="sig-sub" style="margin-top:4pt;display:flex;gap:10pt;flex-wrap:wrap;">
+          <span>T&amp;C: ${initSig(initObj.tc)}</span>
+          <span>Auth: ${initSig(initObj.auth)}</span>
+          <span>Ad Approval: ${initSig(initObj.adApproval)}</span>
+        </div>
       </div>
     </div>
     <div>
@@ -322,19 +330,20 @@ module.exports = async function(context, req) {
 
 <script>
 window.addEventListener('load', function(){
-  // Inject print styles to suppress URL/timestamp and ensure clean output
   var style = document.createElement('style');
-  style.textContent = [
-    '@page { margin: 0.35in; size: letter portrait; }',
-    '@media print {',
-    '  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
-    '  html { background: #fff !important; }',
-    '  .print-btn { display: none !important; }',
-    '  /* Chrome/Edge: suppress URL and date in headers/footers */',
-    '  @page { margin-top: 0.35in; margin-bottom: 0.35in; }',
-    '}'
-  ].join(' ');
+  style.textContent =
+    '@page { margin:0.35in; size:letter portrait; }' +
+    '@media print {' +
+    '  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+    '  html { background:#fff !important; }' +
+    '  .print-btn { display:none !important; }' +
+    '  a[href]:after { content:"" !important; display:none !important; }' +
+    '  a[href]:before { content:"" !important; display:none !important; }' +
+    '  head, head * { display:none !important; }' +
+    '}';
   document.head.appendChild(style);
+  // Attempt to set page title to empty to suppress in some browsers
+  document.title = ' ';
 });
 </script>
 </body>
