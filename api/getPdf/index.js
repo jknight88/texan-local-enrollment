@@ -195,7 +195,7 @@ module.exports = async function(context, req) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:${compact?'2pt 12pt':'4pt 16pt'};">
       <div>
         <div class="field"><label><span>Business Name</span></label><div class="val" style="font-size:${compact?'8pt':'9pt'};font-weight:700;">${fd.dba ? (fd.bizName||'')+' dba '+fd.dba : (fd.bizName||'')}</div></div>
-        <div class="field"><label><span>Address</span></label><div class="val">${fd.addr||''}</div></div>
+        <div class="field" style="margin-top:8pt;"><label><span>Address</span></label><div class="val">${fd.addr||''}</div></div>
         ${fd.city ? `<div class="field"><div class="val">${fd.city||''}, ${fd.state||''} ${fd.zip||''}</div></div>` : ''}
       </div>
       <div>
