@@ -1,4 +1,4 @@
-// FOLDER: api/getTrash/index.js
+// FOLDER: api/getTrash/index.js 
 // GET /api/getTrash?key=DASHBOARD_KEY
 const { BlobServiceClient } = require("@azure/storage-blob");
 const STORAGE_CONN    = process.env.AZURE_STORAGE_CONNECTION_STRING;
