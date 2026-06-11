@@ -590,22 +590,35 @@ function deleteForm(sessionId,bizName,isSigned){
 function confirmDelete(){
   var id=document.getElementById('del-session-id').value;
   if(!id){ document.getElementById('del-err').textContent='No record ID found.'; document.getElementById('del-err').style.display='block'; return; }
-  var payload = JSON.stringify({id:id, key:DASH_KEY, force:true});
+  // Show spinner on button
+  var delBtn = document.querySelector('#del-modal button[onclick="confirmDelete()"]');
+  if(delBtn){ delBtn.disabled=true; delBtn.textContent='Deleting…'; }
   fetch('/api/deleteForm', {
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body: payload
+    body: JSON.stringify({id:id, key:DASH_KEY, force:true})
   })
     .then(function(r){
       return r.text().then(function(t){ return {status:r.status, text:t}; });
     })
     .then(function(result){
+      if(delBtn){ delBtn.disabled=false; delBtn.textContent='Delete'; }
+      // If we got HTML back (SWA swallowed the request), treat as routing error
+      if(result.text.trim().startsWith('<')){
+        document.getElementById('del-err').textContent='Routing error (status '+result.status+'): The server did not receive the delete request. Check deployment.';
+        document.getElementById('del-err').style.display='block';
+        return;
+      }
       var data;
-      try{ data=JSON.parse(result.text); }catch(e){ data={error:'Response parse error (status '+result.status+'): '+result.text.substring(0,120)}; }
+      try{ data=JSON.parse(result.text); }catch(e){ data={error:'Bad response ('+result.status+'): '+result.text.substring(0,80)}; }
       if(result.status===200 && data.ok){ closeModal('del-modal'); loadData(); }
-      else{ document.getElementById('del-err').textContent='Error '+(result.status)+': '+(data.error||'Delete failed'); document.getElementById('del-err').style.display='block'; }
+      else{ document.getElementById('del-err').textContent='Error '+result.status+': '+(data.error||'Delete failed'); document.getElementById('del-err').style.display='block'; }
     })
-    .catch(function(e){ document.getElementById('del-err').textContent='Network error: '+e.message; document.getElementById('del-err').style.display='block'; });
+    .catch(function(e){
+      if(delBtn){ delBtn.disabled=false; delBtn.textContent='Delete'; }
+      document.getElementById('del-err').textContent='Network error: '+e.message;
+      document.getElementById('del-err').style.display='block';
+    });
 }
 
 // Auto-refresh every 60s
