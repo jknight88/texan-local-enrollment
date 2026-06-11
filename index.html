@@ -275,7 +275,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
   <div class="sh">Client Information</div>
   <div class="gr c2">
     <div class="f" id="fw-biz"><label class="lb">Business Name (Legal)<span class="req">*</span></label><input id="biz-name" type="text"><div class="errmsg">Required</div></div>
-    <div class="f"><label class="lb">DBA / Trade Name</label><input type="text"></div>
+    <div class="f"><label class="lb">DBA / Trade Name</label><input id="f-dba" type="text"></div>
   </div>
   <div class="gr" style="grid-template-columns:2fr 1fr;">
     <div class="f" id="fw-addr"><label class="lb">Street Address<span class="req">*</span></label><input id="f-addr" type="text"><div class="errmsg">Required</div></div>
@@ -1008,43 +1008,82 @@ function fallbackEmail(d){
 function validateZones(){
   var errors = [];
 
-  function checkZone(znEl, pselEl, mselEl, riEl){
-    if(!pselEl || !mselEl || !riEl) return;
+  function checkZoneGroup(nameText, pselEl, mselEl, riEl){
+    if(!pselEl || !riEl) return;
     var hasProduct = !!pselEl.value;
-    var hasMonth   = !!mselEl.value;
+    var hasMonth   = mselEl ? !!mselEl.value : false;
     var hasRate    = parseFloat(riEl.value) > 0;
     var filled     = (hasProduct?1:0) + (hasMonth?1:0) + (hasRate?1:0);
     // 0 filled = empty row, fine. 3 filled = complete, fine. 1 or 2 = error.
     if(filled === 0 || filled === 3) return;
-    var name = znEl ? znEl.textContent.trim() : 'a zone';
+    var name = nameText || 'a zone';
+    // For blank rows: if no zone name entered either, skip (truly blank)
+    if(!name.trim() && filled <= 2) {
+      // only flag if rate is filled but name is missing, or product filled but name missing
+      if(filled === 0) return;
+    }
     var missing = [];
     if(!hasProduct) missing.push('product type');
     if(!hasMonth)   missing.push('start month');
     if(!hasRate)    missing.push('rate');
-    errors.push('Zone ' + name + ': missing ' + missing.join(' and ') + '.');
+    errors.push('Zone ' + (name||'(blank)') + ': missing ' + missing.join(' and ') + '.');
   }
 
-  // Each tr has TWO zones (left and right) - get all zone name cells
+  // Fixed zone rows — td.zn cells
   document.querySelectorAll('td.zn').forEach(function(znEl){
     var row = znEl.parentElement;
-    // Find elements that are siblings AFTER this zn cell and BEFORE next zn or dc
     var cells = Array.prototype.slice.call(row.cells);
     var znIdx = cells.indexOf(znEl);
-    // Collect cells belonging to this zone (between this zn and next dc or zn or end)
     var zoneCells = [];
     for(var i = znIdx+1; i < cells.length; i++){
       var cls = cells[i].className;
       if(cls === 'dc' || cls === 'zn') break;
       zoneCells.push(cells[i]);
     }
-    // Find psel, msel, ri within these cells
     var pselEl = null, mselEl = null, riEl = null;
     zoneCells.forEach(function(cell){
       var p = cell.querySelector('.psel'); if(p) pselEl = p;
       var m = cell.querySelector('.msel'); if(m) mselEl = m;
       var r = cell.querySelector('.ri');   if(r) riEl   = r;
     });
-    checkZone(znEl, pselEl, mselEl, riEl);
+    checkZoneGroup(znEl.textContent.trim(), pselEl, mselEl, riEl);
+  });
+
+  // Blank/custom rows — rows that have .zi inputs instead of td.zn
+  document.querySelectorAll('tr.br').forEach(function(row){
+    // Each .br row has TWO custom zone groups, separated by .dc
+    var cells = Array.prototype.slice.call(row.cells);
+    var groups = [[], []];
+    var gIdx = 0;
+    cells.forEach(function(cell){
+      if(cell.className === 'dc'){ gIdx = 1; return; }
+      groups[gIdx].push(cell);
+    });
+    groups.forEach(function(grp){
+      if(!grp.length) return;
+      var ziEl = null, pselEl = null, mselEl = null, riEl = null;
+      grp.forEach(function(cell){
+        var z = cell.querySelector('.zi');   if(z) ziEl   = z;
+        var p = cell.querySelector('.psel'); if(p) pselEl = p;
+        var m = cell.querySelector('.msel'); if(m) mselEl = m;
+        var r = cell.querySelector('.ri');   if(r) riEl   = r;
+      });
+      var zoneName = ziEl ? ziEl.value.trim() : '';
+      var hasProduct = pselEl ? !!pselEl.value : false;
+      var hasMonth   = mselEl ? !!mselEl.value : false;
+      var hasRate    = riEl ? parseFloat(riEl.value) > 0 : false;
+      var filled     = (zoneName?1:0) + (hasProduct?1:0) + (hasMonth?1:0) + (hasRate?1:0);
+      // 0 = fully empty row, ok. 4 = all filled, ok. 1-3 = partial, check
+      if(filled === 0 || filled === 4) return;
+      // If only zone name filled, that alone isn't an error yet — need at least product/rate
+      if(filled === 1 && zoneName && !hasProduct && !hasRate && !hasMonth) return;
+      var missing = [];
+      if(!zoneName)    missing.push('zone name');
+      if(!hasProduct)  missing.push('product type');
+      if(!hasMonth)    missing.push('start month');
+      if(!hasRate)     missing.push('rate');
+      errors.push('Custom zone ' + (zoneName||'(blank)') + ': missing ' + missing.join(' and ') + '.');
+    });
   });
 
   return errors;
@@ -1121,13 +1160,31 @@ function collectRepFormData() {
         var ms = c.querySelector('.msel'); if(ms) monEl = ms;
       }
       var product   = prodSel ? prodSel.value : '';
-      var startMonth = monEl  ? monEl.value   : '';
+            // For blank rows, msel is a month select and there may also be a ysel
+      var startMonth = '';
+      if(monEl){
+        if(monEl.name && monEl.name.indexOf('mo-b') === 0 || monEl.id && monEl.id.indexOf('mo-b') === 0){
+          // blank row: month + year selects
+          var yselEl = null;
+          var rowCells2 = Array.prototype.slice.call(el.closest('tr').cells);
+          var riIdx2 = Array.prototype.indexOf.call(el.closest('tr').cells, el.closest('td'));
+          for(var ci3=riIdx2; ci3>=0; ci3--){
+            var ys = rowCells2[ci3] ? rowCells2[ci3].querySelector('.ysel') : null;
+            if(ys){ yselEl = ys; break; }
+          }
+          var mo = monEl.value ? ('0'+monEl.value).slice(-2) : '';
+          var yr = yselEl ? yselEl.value : '';
+          if(mo && yr) startMonth = yr + '-' + mo;
+        } else {
+          startMonth = monEl.value;
+        }
+      }
       zones.push({id:el.id, zoneName:zoneName, product:product, startMonth:startMonth, rate:el.value});
     }
   });
   return {
     bizName:  document.getElementById('biz-name').value.trim(),
-    dba:      document.querySelector('input[placeholder*="Doing business"]') ? document.querySelector('input[placeholder*="Doing business"]').value.trim() : '',
+    dba:      document.getElementById('f-dba') ? document.getElementById('f-dba').value.trim() : '',
     addr:     document.getElementById('f-addr').value.trim(),
     contact:  document.getElementById('f-contact').value.trim(),
     city:     document.getElementById('f-city').value.trim(),
@@ -1144,7 +1201,6 @@ function collectRepFormData() {
     zones:      zones,
     notes:      document.getElementById('notes-field') ? document.getElementById('notes-field').value.trim() : '',
     rep:         document.getElementById('rep-select') ? document.getElementById('rep-select').value : '',
-    phone:       document.getElementById('f-phone') ? document.getElementById('f-phone').value.trim() : '',
     cell:        document.getElementById('f-cell')  ? document.getElementById('f-cell').value.trim()  : '',
     clientEmail: document.getElementById('client-email') ? document.getElementById('client-email').value.trim() : ''
   };
