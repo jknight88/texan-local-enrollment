@@ -116,8 +116,23 @@ module.exports = async function(context, req) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
   *{ box-sizing:border-box; margin:0; padding:0; }
   body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:${compact?'7pt':'8pt'}; background:#fff; padding:${compact?'0.22in':'0.35in'}; }
-  @page{ margin:0; size:letter portrait; }
-  @media print{ @page{ margin:0.35in; } html, body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } a[href]:after{ content:'' !important; display:none !important; } a[href]:before{ content:'' !important; display:none !important; } }
+  @page{
+    margin:0.35in;
+    size:letter portrait;
+    /* These suppress headers/footers in Firefox */
+    @top-left   { content: ''; }
+    @top-center { content: ''; }
+    @top-right  { content: ''; }
+    @bottom-left   { content: ''; }
+    @bottom-center { content: ''; }
+    @bottom-right  { content: ''; }
+  }
+  @media print{
+    html, body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    a{ color:inherit !important; text-decoration:none !important; }
+    a[href]:after { content:'' !important; display:none !important; }
+    a[href]:before{ content:'' !important; display:none !important; }
+  }
   @media screen{
     html{ background:#c8ccd4; }
     body{ max-width:760px; margin:0 auto; padding:20px; background:#fff; box-shadow:0 2px 16px rgba(0,0,0,.18); }
@@ -140,9 +155,9 @@ module.exports = async function(context, req) {
   table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
   table.dtbl td{ padding:${compact?'2pt 4pt':'3pt 6pt'}; border:0.75pt solid #c8cdd8; font-size:${compact?'7pt':'8pt'}; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
-  table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; border:none; }
-  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none; }
+  table.zones{ width:100%; border-collapse:separate; border-spacing:0; font-size:7.5pt; margin-bottom:4pt; border:none; outline:none; }
+  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; border:none !important; outline:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  table.zones td{ padding:${compact?'1.5pt 6pt':'2.5pt 8pt'}; border:none !important; outline:none !important; background:#fff; }
   .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:${compact?'2pt 0':'4pt 0'}; }
   .total-row{ display:flex; justify-content:space-between; align-items:center; padding:${compact?'2pt 6pt':'3pt 8pt'}; border-bottom:0.75pt solid #dde2ef; font-size:${compact?'7pt':'8pt'}; }
   .total-row:last-child{ border-bottom:none; }
@@ -160,7 +175,7 @@ module.exports = async function(context, req) {
 </style>
 </head>
 <body>
-<button class="print-btn" onclick="window.print()">&#128438; Print / Save PDF</button>
+<button class="print-btn" id="print-btn" onclick="doPrint()">&#128438; Print / Save PDF</button>
 
 <!-- PAGE 1 -->
 <div class="page">
@@ -252,7 +267,10 @@ module.exports = async function(context, req) {
       <div class="total-row pink"><span style="font-size:10pt;">First Month Payment</span><span style="font-size:12pt;color:#BF0D3E;">${s.firstMonth||'$0.00'}</span></div>
       <div class="total-row blue"><span style="font-size:10pt;">Monthly Charge (recurring)</span><span style="font-size:12pt;">${s.monthly||'$0.00'}</span></div>
     </div>
-
+    <div style="margin-top:4pt;display:flex;align-items:center;gap:8pt;font-size:${compact?'7pt':'8pt'};">
+      <span style="font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.3pt;">Payment Authorization Initials:</span>
+      ${initSig(initObj.auth)}
+    </div>
   </div>
 
   <div class="ftr">
@@ -277,6 +295,10 @@ module.exports = async function(context, req) {
     <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">In the event of nonpayment, chargeback, returned payment, breach, or other default, Company may immediately suspend all services without further notice. Such suspension shall not relieve Client of any payment obligations. Upon default, all unpaid amounts, termination fees, and charges shall immediately become due and payable. In the event of a chargeback, payment dispute, returned ACH, insufficient funds, revoked payment authorization, or other payment reversal initiated by Client, such action constitutes a default and all recovery costs shall be immediately due and payable by Client.</p>
     <p style="font-size:7.5pt;line-height:1.5;margin-bottom:4pt;text-align:justify;">Client shall receive reasonable opportunities to review and approve advertising materials prior to publication. If Client fails to provide approvals, revisions, artwork, or required materials by Company&rsquo;s stated deadlines, Company may publish the most recently approved version, utilize materials previously supplied, or omit the advertisement without relieving Client of any payment obligations. The individual signing personally, unconditionally, and irrevocably guarantees payment and performance of all obligations. Client and guarantor agree to reimburse Company for all enforcement costs including reasonable attorney&rsquo;s fees, court costs, filing fees, collection agency fees, and other collection-related expenses.</p>
     <p style="font-size:7.5pt;line-height:1.5;text-align:justify;">This Agreement constitutes the entire agreement between the parties. Electronic signatures shall be deemed original signatures and shall be fully binding and enforceable under the federal ESIGN Act and UETA. Company shall not be liable for delays caused by events beyond its reasonable control. This Agreement shall be governed by the laws of the State of Texas; exclusive venue for any dispute shall be the state courts located in Comal County, Texas. The prevailing party in any action arising from this Agreement shall be entitled to recover its reasonable attorney&rsquo;s fees and costs.</p>
+    <div style="margin-top:6pt;display:flex;align-items:center;gap:8pt;padding:4pt 0;border-top:0.75pt solid #dde2ef;">
+      <span style="font-size:7.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.3pt;">I have read and agree to the Terms &amp; Conditions &mdash; Initials:</span>
+      ${initSig(initObj.tc)}
+    </div>
   </div>
 
   <!-- ESIGN -->
@@ -330,21 +352,49 @@ module.exports = async function(context, req) {
 
 <script>
 window.addEventListener('load', function(){
-  var style = document.createElement('style');
-  style.textContent =
-    '@page { margin:0.35in; size:letter portrait; }' +
-    '@media print {' +
-    '  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
-    '  html { background:#fff !important; }' +
-    '  .print-btn { display:none !important; }' +
-    '  a[href]:after { content:"" !important; display:none !important; }' +
-    '  a[href]:before { content:"" !important; display:none !important; }' +
-    '  head, head * { display:none !important; }' +
-    '}';
-  document.head.appendChild(style);
-  // Attempt to set page title to empty to suppress in some browsers
-  document.title = ' ';
+  // Force title to just the business name (no URL pattern) so browser header shows it cleanly
+  // The URL in print headers comes from the browser — we open a blob: URL to suppress it
+  document.title = 'Enrollment Agreement';
 });
+
+function doPrint(){
+  // Hide print button before capture
+  var btn = document.getElementById('print-btn');
+  if(btn) btn.style.display='none';
+
+  // Serialize current page HTML
+  var html = '<!DOCTYPE html>' + document.documentElement.outerHTML;
+
+  // Create a blob URL — blob: URLs show as blank in Chrome/Firefox print headers
+  var blob = new Blob([html], {type:'text/html'});
+  var url  = URL.createObjectURL(blob);
+
+  // Open in a hidden iframe and print from there
+  var iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;';
+  document.body.appendChild(iframe);
+
+  iframe.onload = function(){
+    // Give fonts a moment to load
+    setTimeout(function(){
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch(e){
+        // Fallback: direct print
+        window.print();
+      }
+      // Restore button and cleanup after a delay
+      setTimeout(function(){
+        if(btn) btn.style.display='';
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(url);
+      }, 3000);
+    }, 800);
+  };
+
+  iframe.src = url;
+}
 </script>
 </body>
 </html>`;
