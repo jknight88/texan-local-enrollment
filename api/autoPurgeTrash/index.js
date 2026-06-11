@@ -1,4 +1,4 @@
-// Timer function — runs daily at 2:00 AM Central
+// Timer function — runs daily at 2:00 AM Central 
 // Permanently deletes any trash records where _purgeAfter has passed
 const { BlobServiceClient } = require("@azure/storage-blob");
 const STORAGE_CONN    = process.env.AZURE_STORAGE_CONNECTION_STRING;
