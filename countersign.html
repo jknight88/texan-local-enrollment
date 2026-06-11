@@ -146,7 +146,9 @@ function fmtDate(iso){
 function initCanvas(){
   var canvas = document.getElementById('rep-canvas');
   var sw     = document.getElementById('rep-sig-wrap');
-  var w = canvas.offsetWidth || 600;
+  // Force layout before reading offsetWidth
+  var w = canvas.parentElement ? (canvas.parentElement.offsetWidth || canvas.offsetWidth || 600) : 600;
+  if(w < 100) w = 600; // safety minimum
   canvas.width  = w;
   canvas.height = 100;
   var ctx = canvas.getContext('2d');
@@ -211,7 +213,7 @@ async function completeSigning(){
         repSigTitle:  sigTitle,
         repSigImage:  (function(){
           var c=document.getElementById('rep-canvas');
-          if(!c) return '';
+          if(!c || !c.width || c.width < 10) return '';
           try{ return c.toDataURL('image/png'); }catch(e){ return ''; }
         })()
       })
