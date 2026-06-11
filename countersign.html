@@ -131,7 +131,8 @@ async function loadAgreement(){
       +'</table>';
 
     document.getElementById('sig-section').style.display='block';
-    initCanvas();
+    // Defer so browser reflows the now-visible canvas before we read its width
+    requestAnimationFrame(function(){ requestAnimationFrame(initCanvas); });
   } catch(err){
     document.getElementById('agreement-info').innerHTML = '<p style="color:var(--rd);padding:1rem;">Error: '+esc(err.message)+'</p>';
   }
