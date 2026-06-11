@@ -655,10 +655,21 @@ function buildSummary(d){
   if(ciEl) ciEl.innerHTML = ciHtml;
 
   // ── ENROLLMENT SUMMARY SECTION ───────────────────────────────────────
+  // Build term as styled read-only buttons matching rep form
+  var termMap = {'6': {name:'Limited', mo:'6 mo'}, '6 months': {name:'Limited', mo:'6 mo'}, '12': {name:'Premium', mo:'12 mo'}, '12 months': {name:'Premium', mo:'12 mo'}, '24': {name:'Elite', mo:'24 mo'}, '24 months': {name:'Elite', mo:'24 mo'}};
+  var termVal = (d.term||'').toString().trim();
+  var termInfo = termMap[termVal] || null;
   var termHtml = '<div style="margin-bottom:10px;">';
-  termHtml += lbl('Selected Term');
-  termHtml += '<div style="font-size:14px;font-weight:700;color:var(--bl);">' + esc(d.term||'') + '</div>';
-  termHtml += '</div>';
+  termHtml += '<div style="font-size:9.5px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selected Term Package</div>';
+  termHtml += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].forEach(function(t){
+    var isSel = termInfo ? termInfo.name===t.name : (termVal===t.val||termVal===t.val+' months');
+    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border:1.5px solid ' + (isSel?'var(--bl)':' #c8cdd8') + ';border-radius:4px;background:' + (isSel?'#edf0f7':'#f9fafc') + ';white-space:nowrap;">';
+    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+t.name+'</span>';
+    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+t.mo+'</span>';
+    termHtml += '</div>';
+  });
+  termHtml += '</div></div>';
 
   var zonesHtml = '';
   var zones = d.zones || [];
@@ -752,7 +763,7 @@ function confirmConsent(){
   window._consentAt=new Date().toISOString();
   document.getElementById('consent-gate').style.display='none';
   var data=window._sessionData;
-  if(data&&data.formData) buildSummary(data.formData);
+  if(data&&data.formData){ var fd2=Object.assign({},data.formData); if(!fd2.email) fd2.email=data.clientEmail||''; buildSummary(fd2); }
   document.getElementById('form-wrap').style.display='block';
   document.getElementById('sign-banner').style.display='flex';
   enterClientSigningMode();
@@ -1153,12 +1164,18 @@ function validatePayment(){
     var row = el.closest('.irow');
     if(el.value.trim()){
       el.style.borderBottomColor='var(--br)';
-      if(row) row.style.outline='none';
+      el.style.background='';
+      if(row){ row.style.outline='none'; row.style.background='';}
     } else {
       el.style.borderBottomColor='var(--rd)';
       el.style.background='#fff5f7';
+      if(row){ row.style.outline='2px solid var(--rd)'; row.style.borderRadius='3px'; row.style.background='#fff5f7';}
       ok=false;
-      if(!document.querySelector('.irow[data-err]')) el.scrollIntoView({behavior:'smooth',block:'center'});
+      // Only scroll if the element's parent section is visible
+      var pp = el.closest('.pp');
+      if(!pp || pp.classList.contains('on')){
+        el.scrollIntoView({behavior:'smooth',block:'center'});
+      }
     }
   });
 
@@ -1235,12 +1252,19 @@ async function submitSigned(){
         monthly:    document.getElementById('d-monthly').textContent,
         initials:   JSON.stringify({payment:initVals[0],tc:initVals[1],auth:initVals[2],adApproval:initAdApproval}),
         sigImage:   (function(){
-          var c=document.getElementById('sc-client');
-          if(!c) return '';
-          // find the live canvas (may have been cloned by reinitPad)
-          var sw=document.querySelector('.sigwrap');
-          if(sw){ var cc=sw.querySelector('canvas'); if(cc) c=cc; }
-          try{ return c.toDataURL('image/png'); }catch(e){ return ''; }
+          // Use SIGN_FIELDS entry for client-sig (reinitPad replaces canvas but updates SIGN_FIELDS)
+          try {
+            if(window.SIGN_FIELDS && window.SIGN_FIELDS['client-sig'] && window.SIGN_FIELDS['client-sig'].el){
+              var liveC = window.SIGN_FIELDS['client-sig'].el;
+              return liveC.toDataURL('image/png');
+            }
+          } catch(e){}
+          // fallback: find canvas inside the client sigwrap (first sigwrap in form-wrap)
+          try {
+            var fw = document.getElementById('form-wrap');
+            if(fw){ var sw=fw.querySelector('.sigwrap'); if(sw){ var cc=sw.querySelector('canvas'); if(cc) return cc.toDataURL('image/png'); } }
+          } catch(e){}
+          return '';
         })(),
         notes:      '',
         sigName:    document.getElementById('f-signame')?document.getElementById('f-signame').value.trim():'',
