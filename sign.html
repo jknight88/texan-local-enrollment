@@ -404,12 +404,29 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
 
 <div class="fb">
 
+<!-- CLIENT INFO (read-only) -->
+<div class="sc">
+  <div class="sh">Client Information</div>
+  <div id="client-info-summary">
+    <div style="text-align:center;padding:1rem;color:var(--md);font-size:12px;">Loading&hellip;</div>
+  </div>
+</div>
+
 <!-- ENROLLMENT SUMMARY (read-only) -->
 <div class="sc">
-  <div class="sh">Your Enrollment Summary</div>
+  <div class="sh">Enrollment Summary</div>
   <div id="enrollment-summary">
     <div style="text-align:center;padding:1rem;color:var(--md);font-size:12px;">Loading your enrollment details&hellip;</div>
   </div>
+</div>
+
+<!-- AD APPROVALS -->
+<div class="sc">
+  <div class="sh">Ad Approvals</div>
+  <div style="font-size:11.5px;line-height:1.7;color:#333;margin-bottom:10px;">
+    You will receive timely proofs for your ad placement. To meet our press deadlines, advertisers are bound by the <strong>&ldquo;ad approval process and terms&rdquo;</strong> and must comply with timely approval of ads. Full payment is due with or without an ad approval.
+  </div>
+  <div class="irow"><label>Ad Approvals — Initials:</label><input id="ii-adapproval" class="ii" type="text" placeholder="INIT." required></div>
 </div>
 
 <!-- PAYMENT AUTHORIZATION (fillable by client) -->
@@ -441,7 +458,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
       <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="enforceRange(this,4,17)"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
-    <div class="irow"><label>Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
+    <div class="irow"><label>Payment Initials:</label><input id="ii-pay-cc" class="ii" type="text" placeholder="INIT."></div>
   </div>
   <div class="pp" id="pp-ach">
     <div class="gr c2">
@@ -462,7 +479,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
       </div>
     </div>
     <div class="notetxt">By providing your bank information, you authorize Knight Dynamic Solutions, LLC to initiate electronic debits from your account on approximately the <strong>20th of each month</strong>.</div>
-    <div class="irow"><label>Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
+    <div class="irow"><label>Payment Initials:</label><input id="ii-pay-ach" class="ii" type="text" placeholder="INIT."></div>
   </div>
   <div class="warn" style="margin-top:6px;">&#9733; Unpaid balances will incur a fee of the greater of $50 or 10% per month.</div>
 </div>
@@ -478,7 +495,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
     <p style="margin-bottom:.7rem;">Client shall receive reasonable opportunities to review and approve advertising materials prior to publication. If Client fails to provide approvals, revisions, artwork, offers, or other required materials by Company&rsquo;s stated deadlines, Company may publish the most recently approved version, utilize materials previously supplied by Client, or omit the advertisement without relieving Client of any payment obligations under this Agreement. The individual signing below on behalf of Client represents and warrants that he or she is authorized to bind Client to this Agreement and further personally, unconditionally, and irrevocably guarantees payment and performance of all obligations arising under this Agreement. Client and guarantor agree to reimburse Company for all costs incurred in enforcing this Agreement or collecting amounts owed, including reasonable attorney&rsquo;s fees, court costs, filing fees, collection agency fees, and other collection-related expenses.</p>
     <p style="margin-bottom:.7rem;">This Agreement constitutes the entire agreement between the parties and supersedes all prior discussions, proposals, representations, and agreements. If any provision of this Agreement is held invalid or unenforceable, the remaining provisions shall remain in full force and effect. Electronic signatures, digital signatures, and signatures captured on electronic devices shall be deemed original signatures and shall be fully binding and enforceable. Company shall not be liable for delays, interruptions, or failures in performance caused by events beyond its reasonable control, including acts of God, weather events, postal disruptions, labor shortages, equipment failures, vendor delays, or governmental actions. This Agreement shall be governed by the laws of the State of Texas, and exclusive venue for any dispute arising from this Agreement shall be the state courts located in Comal County, Texas. The prevailing party in any action arising from this Agreement shall be entitled to recover its reasonable attorney&rsquo;s fees and costs.</p>
   </div>
-  <div class="irow" style="margin-top:10px;"><label>I have read and agree to the Terms &amp; Conditions — Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
+  <div class="irow" style="margin-top:10px;"><label>Terms &amp; Conditions Initials:</label><input id="ii-tc" class="ii" type="text" placeholder="INIT."></div>
 </div>
 
 <!-- PAYMENT SUMMARY -->
@@ -490,7 +507,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
     <div class="tr2 tfirst"><div><div class="tlbl" style="font-size:12.5px;">First Month Payment</div><div class="tnote" style="color:#9b2446;">Includes setup fee</div></div><div class="tval" id="d-first" style="color:var(--rd);font-size:14px;">$0.00</div></div>
     <div class="tr2 tmon"><div><div class="tlbl" style="font-size:12.5px;">Monthly Charge <span style="font-size:9px;font-weight:400;opacity:.8;">(after first month)</span></div><div class="tnote wh">Recurring monthly amount</div></div><div class="tval" id="d-monthly" style="color:#fff;font-size:14px;">$0.00</div></div>
   </div>
-  <div class="irow" style="margin-top:8px;"><label>Payment Authorization Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
+  <div class="irow" style="margin-top:8px;"><label>Authorization Initials:</label><input id="ii-auth" class="ii" type="text" placeholder="INIT."></div>
 </div>
 
 <!-- SIGNATURE -->
@@ -609,39 +626,71 @@ async function loadSession(){
 
 // -- BUILD READ-ONLY SUMMARY -------------------------------------------
 function buildSummary(d){
-  // Two-column layout: left=biz name+address, right=contact+phone+term
-  var left  = '<div style="flex:1;min-width:0;">';
-  left += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Business Name</div>';
-  left += '<div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">' + esc(d.bizName||'') + '</div>';
-  if(d.dba){
-    left += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">DBA</div>';
-    left += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.dba) + '</div>';
-  }
-  left += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Address</div>';
-  left += '<div style="font-size:12px;color:#333;">' + esc(d.addr||'') + '</div>';
-  if(d.city) left += '<div style="font-size:11.5px;color:#333;">' + esc(d.city) + (d.state?', '+esc(d.state):'') + (d.zip?' '+esc(d.zip):'') + '</div>';
-  left += '</div>';
+  var lbl = function(t){ return '<div style="font-size:9.5px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;">'+t+'</div>'; };
+  var val = function(v,sz){ return '<div style="font-size:'+(sz||'12px')+';color:#1a1a2e;margin-bottom:7px;">'+esc(v)+'</div>'; };
 
-  var right = '<div style="min-width:160px;text-align:right;">';
-  if(d.contact){
-    right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Contact</div>';
-    right += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.contact) + '</div>';
-  }
-  if(d.phone){
-    right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Phone</div>';
-    right += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.phone) + '</div>';
-  }
-  if(d.cell){
-    right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Cell</div>';
-    right += '<div style="font-size:12px;margin-bottom:8px;">' + esc(d.cell) + '</div>';
-  }
-  right += '<div style="font-size:10px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Term</div>';
-  right += '<div style="font-size:12px;font-weight:700;color:var(--bl);">' + esc(d.term||'') + '</div>';
-  right += '</div>';
+  // ── CLIENT INFO SECTION ───────────────────────────────────────────────
+  var leftCI = '<div style="flex:1;min-width:0;">';
+  leftCI += lbl('Business Name');
+  leftCI += val(d.bizName||'','13px');
+  leftCI += lbl('DBA / Trade Name');
+  leftCI += val(d.dba||'—');
+  leftCI += lbl('Address');
+  leftCI += val((d.addr||'')+(d.city?', '+d.city:'')+(d.state?' '+d.state:'')+(d.zip?' '+d.zip:''));
+  leftCI += '</div>';
 
-  var html2 = '<div style="display:flex;gap:16px;align-items:flex-start;">' + left + right + '</div>';
-  if(d.notes) html2 += '<div style="margin-top:.6rem;font-size:11px;color:var(--md);border-top:1px solid var(--br);padding-top:6px;"><strong>Notes:</strong> ' + esc(d.notes) + '</div>';
+  var rightCI = '<div style="min-width:160px;">';
+  rightCI += lbl('Contact');
+  rightCI += val(d.contact||'—');
+  rightCI += lbl('Phone');
+  rightCI += val(d.phone||'—');
+  rightCI += lbl('Cell');
+  rightCI += val(d.cell||'—');
+  rightCI += lbl('Email');
+  rightCI += val(d.email||'—');
+  rightCI += '</div>';
 
+  var ciHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;">' + leftCI + rightCI + '</div>';
+  var ciEl = document.getElementById('client-info-summary');
+  if(ciEl) ciEl.innerHTML = ciHtml;
+
+  // ── ENROLLMENT SUMMARY SECTION ───────────────────────────────────────
+  var termHtml = '<div style="margin-bottom:10px;">';
+  termHtml += lbl('Selected Term');
+  termHtml += '<div style="font-size:14px;font-weight:700;color:var(--bl);">' + esc(d.term||'') + '</div>';
+  termHtml += '</div>';
+
+  var zonesHtml = '';
+  var zones = d.zones || [];
+  var activeZones = zones.filter(function(z){ return z.product && z.product !== '' && z.rate && parseFloat(z.rate) > 0; });
+  if(activeZones.length > 0){
+    zonesHtml += '<table class="zone-summary-table"><thead><tr>'
+      + '<th>Zone</th><th>Product</th><th>Start</th><th style="text-align:right;">Rate/Mo</th>'
+      + '</tr></thead><tbody>';
+    activeZones.forEach(function(z){
+      var startFmt = '';
+      if(z.startMonth){
+        var parts = z.startMonth.split('-');
+        var months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        startFmt = (months[parseInt(parts[1])]||'') + ' ' + (parts[0]||'');
+      }
+      zonesHtml += '<tr>'
+        + '<td style="font-weight:700;color:var(--bl);">' + esc(z.zoneName||z.id||'') + '</td>'
+        + '<td>' + esc(z.product||'') + '</td>'
+        + '<td>' + esc(startFmt) + '</td>'
+        + '<td style="text-align:right;font-weight:700;">$' + parseFloat(z.rate||0).toFixed(2) + '/mo</td>'
+        + '</tr>';
+    });
+    zonesHtml += '</tbody></table>';
+  } else {
+    zonesHtml = '<div style="font-size:11px;color:var(--md);">Zone details on file.</div>';
+  }
+  if(d.notes) zonesHtml += '<div style="margin-top:.6rem;font-size:11px;color:var(--md);border-top:1px solid var(--br);padding-top:6px;"><strong>Notes:</strong> ' + esc(d.notes) + '</div>';
+
+  var esEl = document.getElementById('enrollment-summary');
+  if(esEl) esEl.innerHTML = termHtml + zonesHtml;
+
+  // ── TOTALS ────────────────────────────────────────────────────────────
   if(d.firstMonth){ var dfEl=document.getElementById('d-first'); if(dfEl) dfEl.textContent=d.firstMonth; }
   if(d.monthly){ var dmEl=document.getElementById('d-monthly'); if(dmEl) dmEl.textContent=d.monthly; }
   if(d.subtotal){ var dsEl=document.getElementById('d-sub'); if(dsEl) dsEl.textContent=d.subtotal; }
@@ -655,7 +704,6 @@ function buildSummary(d){
     var badge=document.getElementById('hdr-rep-badge');
     if(badge){badge.textContent='Rep: '+d.rep;badge.style.display='inline-block';}
   }
-  document.getElementById('enrollment-summary').innerHTML = html2;
 }
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1095,6 +1143,25 @@ function validatePayment(){
     var atypeFw=document.getElementById('fw-atype');
     if(!atype.value){atypeFw.classList.add('fe');ok=false;}else{atypeFw.classList.remove('fe');}
   }
+  // Initials fields — all required
+  var iiPayEl = document.getElementById('pp-cc').classList.contains('on') ? document.getElementById('ii-pay-cc') : document.getElementById('ii-pay-ach');
+  var iiTcEl = document.getElementById('ii-tc');
+  var iiAuthEl = document.getElementById('ii-auth');
+  var iiAdEl = document.getElementById('ii-adapproval');
+  [iiPayEl, iiTcEl, iiAuthEl, iiAdEl].forEach(function(el){
+    if(!el) return;
+    var row = el.closest('.irow');
+    if(el.value.trim()){
+      el.style.borderBottomColor='var(--br)';
+      if(row) row.style.outline='none';
+    } else {
+      el.style.borderBottomColor='var(--rd)';
+      el.style.background='#fff5f7';
+      ok=false;
+      if(!document.querySelector('.irow[data-err]')) el.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  });
+
   // Sig name + title
   var signame=document.getElementById('f-signame');
   var sigtitle=document.getElementById('f-sigtitle');
@@ -1146,18 +1213,12 @@ async function submitSigned(){
     var anameFull=document.getElementById('f-aname')?document.getElementById('f-aname').value.trim():'';
     payDetail='Routing:'+rout+'|Account:'+acctFull+'|Type:'+atype+'|Holder:'+anameFull;
   }
-  // Collect initials by section: payment, t&c, authorization
-  var initPayment='', initTC='', initAuth='';
-  document.querySelectorAll('.irow').forEach(function(row){
-    var inp=row.querySelector('input');
-    if(!inp||!inp.value.trim()) return;
-    var lbl=(row.querySelector('label')||{}).textContent||'';
-    lbl=lbl.toLowerCase();
-    if(lbl.indexOf('payment')>=0) initPayment=inp.value.trim();
-    else if(lbl.indexOf('terms')>=0||lbl.indexOf('t&c')>=0||lbl.indexOf('conditions')>=0||lbl.indexOf('read')>=0) initTC=inp.value.trim();
-    else if(lbl.indexOf('auth')>=0) initAuth=inp.value.trim();
-    else if(!initPayment) initPayment=inp.value.trim();
-  });
+  // Collect initials by section using IDs
+  var ccOn2=document.getElementById('pp-cc').classList.contains('on');
+  var initPayment=(document.getElementById(ccOn2?'ii-pay-cc':'ii-pay-ach')||{value:''}).value.trim();
+  var initTC=(document.getElementById('ii-tc')||{value:''}).value.trim();
+  var initAuth=(document.getElementById('ii-auth')||{value:''}).value.trim();
+  var initAdApproval=(document.getElementById('ii-adapproval')||{value:''}).value.trim();
   var initVals=[initPayment,initTC,initAuth];
 
   try{
@@ -1172,7 +1233,7 @@ async function submitSigned(){
         subtotal:   document.getElementById('d-sub').textContent,
         firstMonth: document.getElementById('d-first').textContent,
         monthly:    document.getElementById('d-monthly').textContent,
-        initials:   JSON.stringify({payment:initVals[0],tc:initVals[1],auth:initVals[2]}),
+        initials:   JSON.stringify({payment:initVals[0],tc:initVals[1],auth:initVals[2],adApproval:initAdApproval}),
         sigImage:   (function(){
           var c=document.getElementById('sc-client');
           if(!c) return '';
@@ -1187,7 +1248,9 @@ async function submitSigned(){
         signedDate: new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
       })
     });
-    var data=await resp.json();
+    var raw=await resp.text();
+    var data={};
+    try{ data=JSON.parse(raw); }catch(e){ throw new Error('Invalid response from server. Please try again.'); }
     if(resp.ok&&data.ok){
       // Make overlay fully opaque - solid blocking completion screen
       var loadingOverlay = document.getElementById('sign-loading');
