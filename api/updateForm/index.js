@@ -6,8 +6,10 @@ const CONTAINER     = "enrollments";
 const DASHBOARD_KEY = process.env.DASHBOARD_KEY || "changeme";
 
 module.exports = async function(context, req) {
-  if (req.method === "OPTIONS") { context.res={status:200}; return; }
-  const { id, key, formData } = req.body || {};
+  if (req.method === "OPTIONS") { context.res={status:200,headers:{'Content-Type':'application/json'},body:"{}"}; return; }
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch(e) { body = {}; } }
+  const { id, key, formData } = body;
   if (key !== DASHBOARD_KEY) { context.res={status:401,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:"Unauthorized"})}; return; }
   if (!id || !formData) { context.res={status:400,headers:{'Content-Type':'application/json'},body:JSON.stringify({error:"Missing id or formData"})}; return; }
   try {
