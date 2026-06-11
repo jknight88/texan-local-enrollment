@@ -585,13 +585,15 @@ function buildSummary(d){
   var termHtml = '<div style="margin-bottom:10px;">';
   termHtml += '<div style="font-size:9.5px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selected Term Package</div>';
   termHtml += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
-  [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].forEach(function(t){
-    var isSel = termInfo ? termInfo.name===t.name : (termVal===t.val||termVal===t.val+' months');
-    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border:1.5px solid ' + (isSel?'var(--bl)':'#c8cdd8') + ';border-radius:4px;background:' + (isSel?'#edf0f7':'#f9fafc') + ';white-space:nowrap;">';
-    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+t.name+'</span>';
-    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+t.mo+'</span>';
+  var selTerm = termInfo || [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].find(function(t){ return termVal===t.val||termVal===t.val+' months'; });
+  if(selTerm){
+    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 14px;border:1.5px solid var(--bl);border-radius:4px;background:#edf0f7;white-space:nowrap;">';
+    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+selTerm.name+'</span>';
+    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+selTerm.mo+'</span>';
     termHtml += '</div>';
-  });
+  } else {
+    termHtml += '<span style="font-size:12px;font-weight:700;color:var(--bl);">'+esc(d.term||'')+'</span>';
+  }
   termHtml += '</div></div>';
   var zones = d.zones || [];
   var activeZones = zones.filter(function(z){ return z.product && z.product !== '' && z.rate && parseFloat(z.rate) > 0; });
