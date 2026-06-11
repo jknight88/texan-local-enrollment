@@ -96,6 +96,9 @@ module.exports = async function(context, req) {
           + '</tr>';
       });
     }
+    const zoneCount = fd.zones ? fd.zones.filter(z => z.product && parseFloat(z.rate||0)>0).length : 0;
+    // Compress page 1 when many zones fill the page
+    const compact = zoneCount >= 6;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -106,7 +109,7 @@ module.exports = async function(context, req) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&family=Dancing+Script:wght@600&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
   *{ box-sizing:border-box; margin:0; padding:0; }
-  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:8pt; background:#fff; padding:0.35in; }
+  body{ font-family:'Source Sans 3',Arial,sans-serif; color:#1a1a2e; font-size:${compact?'7pt':'8pt'}; background:#fff; padding:${compact?'0.22in':'0.35in'}; }
   @page{ margin:0; size:letter portrait; }
   @media screen{
     html{ background:#c8ccd4; }
@@ -119,26 +122,26 @@ module.exports = async function(context, req) {
   }
   .page{ page-break-after:always; }
   .page:last-child{ page-break-after:avoid; }
-  .hdr{ background:#00205B; padding:6pt 12pt; border-bottom:3pt solid #BF0D3E; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .hdr{ background:#00205B; padding:${compact?'4pt 10pt':'6pt 12pt'}; border-bottom:3pt solid #BF0D3E; display:flex; align-items:center; justify-content:space-between; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .hdr-title{ color:#fff; font-family:'Playfair Display',serif; font-size:11pt; }
   .hdr-sub{ color:rgba(255,255,255,.7); font-size:7pt; margin-top:1pt; }
-  .section{ padding:4pt 10pt; border-bottom:1pt solid #dde2ef; }
+  .section{ padding:${compact?'2pt 8pt':'4pt 10pt'}; border-bottom:1pt solid #dde2ef; }
   .sec-title{ background:#00205B; color:#fff; font-size:6.5pt; font-weight:700; letter-spacing:.8pt; text-transform:uppercase; padding:2pt 10pt; margin:0 -10pt 5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:4pt; }
-  .field label{ display:block; font-size:6.5pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:1pt; }
-  .field .val{ font-size:8pt; border-bottom:0.75pt solid #c8cdd8; padding:1pt 0; min-height:11pt; }
+  .field label{ display:block; font-size:${compact?'6pt':'6.5pt'}; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; margin-bottom:${compact?'0':'1pt'}; }
+  .field .val{ font-size:${compact?'7pt':'8pt'}; border-bottom:0.75pt solid #c8cdd8; padding:${compact?'0':'1pt 0'}; min-height:${compact?'9pt':'11pt'}; }
   table.dtbl{ width:100%; border-collapse:collapse; margin-bottom:4pt; }
-  table.dtbl td{ padding:3pt 6pt; border:0.75pt solid #c8cdd8; font-size:8pt; }
+  table.dtbl td{ padding:${compact?'2pt 4pt':'3pt 6pt'}; border:0.75pt solid #c8cdd8; font-size:${compact?'7pt':'8pt'}; }
   table.dtbl td:first-child{ font-weight:700; color:#4a4f5e; background:#edf0f7; width:38%; }
   table.zones{ width:100%; border-collapse:collapse; font-size:7.5pt; margin-bottom:4pt; }
-  table.zones th{ background:#00205B; color:#fff; padding:2.5pt 5pt; font-size:7pt; text-align:left; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  table.zones td{ padding:2.5pt 5pt; border:0.75pt solid #c8cdd8; }
-  .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:4pt 0; }
-  .total-row{ display:flex; justify-content:space-between; align-items:center; padding:3pt 8pt; border-bottom:0.75pt solid #dde2ef; font-size:8pt; }
+  table.zones th{ background:#00205B; color:#fff; padding:${compact?'1.5pt 4pt':'2.5pt 5pt'}; font-size:${compact?'6.5pt':'7pt'}; text-align:left; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  table.zones td{ padding:${compact?'1.5pt 4pt':'2.5pt 5pt'}; border:0.75pt solid #c8cdd8; }
+  .totals-box{ border:1.25pt solid #00205B; border-radius:2pt; overflow:hidden; margin:${compact?'2pt 0':'4pt 0'}; }
+  .total-row{ display:flex; justify-content:space-between; align-items:center; padding:${compact?'2pt 6pt':'3pt 8pt'}; border-bottom:0.75pt solid #dde2ef; font-size:${compact?'7pt':'8pt'}; }
   .total-row:last-child{ border-bottom:none; }
   .total-row.blue{ background:#00205B; color:#fff; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .total-row.pink{ background:#fef0f4; font-weight:700; }
-  .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12pt; padding:5pt 10pt; }
+  .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:${compact?'8pt':'12pt'}; padding:${compact?'3pt 8pt':'5pt 10pt'}; }
   .sig-block label{ font-size:6.5pt; font-weight:700; color:#4a4f5e; text-transform:uppercase; letter-spacing:.3pt; display:block; margin-bottom:3pt; }
   .sig-line{ border-bottom:1.25pt solid #1a1a2e; height:24pt; margin-bottom:2pt; }
   .sig-sub{ font-size:7.5pt; color:#4a4f5e; margin-top:2pt; }
@@ -165,26 +168,28 @@ module.exports = async function(context, req) {
   <!-- CLIENT INFO -->
   <div class="section">
     <div class="sec-title">Client Information</div>
-    <div class="grid2">
-      <div class="field"><label>Business Name</label><div class="val">${fd.bizName||''}</div></div>
-      <div class="field"><label>DBA / Trade Name</label><div class="val">${fd.dba||''}</div></div>
-      <div class="field" style="grid-column:span 2"><label>Street Address</label><div class="val">${fd.addr||''}</div></div>
-      <div class="field"><label>City</label><div class="val">${fd.city||''}</div></div>
-      <div class="field"><label>State / ZIP</label><div class="val">${fd.state||''} ${fd.zip||''}</div></div>
-      <div class="field"><label>Phone</label><div class="val">${fd.phone||''}</div></div>
-      <div class="field"><label>Cell</label><div class="val">${fd.cell||''}</div></div>
-      <div class="field"><label>Contact Name</label><div class="val">${fd.contact||''}</div></div>
-      <div class="field"><label>Email</label><div class="val">${record.clientEmail||''}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:${compact?'2pt 12pt':'4pt 16pt'};">
+      <div>
+        <div class="field"><label>Business Name</label><div class="val" style="font-size:${compact?'8pt':'9pt'};font-weight:700;">${fd.bizName||''}</div></div>
+        <div class="field"><label>DBA / Trade Name</label><div class="val">${fd.dba||''}</div></div>
+        <div class="field"><label>Address</label><div class="val">${fd.addr||''}</div></div>
+        ${fd.city ? `<div class="field"><div class="val">${fd.city||''}, ${fd.state||''} ${fd.zip||''}</div></div>` : ''}
+      </div>
+      <div>
+        <div class="field"><label>Contact Name</label><div class="val">${fd.contact||''}</div></div>
+        <div class="field"><label>Phone</label><div class="val">${fd.phone||''}</div></div>
+        <div class="field"><label>Cell</label><div class="val">${fd.cell||''}</div></div>
+        <div class="field"><label>Email</label><div class="val">${record.clientEmail||''}</div></div>
+      </div>
     </div>
   </div>
 
-  <!-- PACKAGE SELECTION -->
+  <!-- ENROLLMENT SUMMARY -->
   <div class="section">
-    <div class="sec-title">Package Selection</div>
-    <div style="display:flex;align-items:center;gap:20pt;margin-bottom:6pt;flex-wrap:wrap;">
-      <div><span style="font-size:7.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Term:</span>
-      <span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.term||''}</span></div>
-      ${fd.rep ? `<div><span style="font-size:7.5pt;font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Sales Rep:</span><span style="font-size:11pt;font-weight:700;color:#00205B;margin-left:4pt;">${fd.rep}</span></div>` : ''}
+    <div class="sec-title">Enrollment Summary</div>
+    <div style="margin-bottom:${compact?'3pt':'6pt'};">
+      <span style="font-size:${compact?'6.5pt':'7.5pt'};font-weight:700;color:#4a4f5e;text-transform:uppercase;letter-spacing:.4pt;">Selected Term:</span>
+      <span style="font-size:${compact?'10pt':'12pt'};font-weight:700;color:#00205B;margin-left:4pt;">${fd.term||''}</span>
     </div>
     ${zoneRows ? `<table class="zones"><thead><tr><th>Zone</th><th>Product</th><th style="text-align:center;">Start</th><th style="text-align:right;">Rate/Mo</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p style="font-size:8.5pt;color:#888;margin-bottom:5pt;">Zone details on file.</p>'}
     ${fd.notes ? `<div style="font-size:8.5pt;margin-top:3pt;"><strong>Notes:</strong> ${fd.notes}</div>` : ''}
@@ -197,7 +202,7 @@ module.exports = async function(context, req) {
     <table class="dtbl" style="margin-top:0;border-top:none;">
       ${pay.rows}
     </table>
-    <div style="font-size:8pt;color:#666;margin-top:3pt;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:${compact?'7pt':'8pt'};color:#666;margin-top:${compact?'2pt':'3pt'};display:flex;align-items:center;justify-content:space-between;">
       <span>${s.payMethod&&s.payMethod.includes('Credit')?'A 4% service fee applies to all credit card payments.':'Client authorizes electronic debits on or about the 20th of each month.'}</span>
       <span style="white-space:nowrap;">Initials: ${initSig(initObj.payment)}</span>
     </div>
