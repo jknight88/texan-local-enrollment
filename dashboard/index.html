@@ -711,7 +711,10 @@ function runAutoPurge(){
 
 // ── SHARED API HELPER ──────────────────────────────────────────────────────
 function callApi(url, payload, callback){
-  fetch(url, {
+  // Send key in both query string AND body to handle Azure body parsing issues
+  var sep = url.indexOf('?') >= 0 ? '&' : '?';
+  var urlWithKey = url + sep + 'key=' + encodeURIComponent(payload.key||DASH_KEY);
+  fetch(urlWithKey, {
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
     body: JSON.stringify(payload)
