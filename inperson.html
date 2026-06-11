@@ -422,7 +422,8 @@ canvas.sp{height:120px!important;cursor:crosshair;}
       <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" inputmode="numeric" placeholder="CVV" oninput="enforceCVV(this)"><div class="errmsg">3 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
-    <div class="irow"><label>Initials:</label><input class="ii" type="text" placeholder="INIT."></div>
+    <div class="warn" style="margin-top:4px;">&#9733; Unpaid balances (including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /month.</div>
+    <div class="irow"><label>Payment Initials:</label><input id="ii-pay-cc" class="ii" type="text" placeholder="INIT."></div>
   </div>
   <!-- ACH Panel -->
   <div class="pp" id="pp-ach">
@@ -444,9 +445,9 @@ canvas.sp{height:120px!important;cursor:crosshair;}
       </div>
     </div>
     <div class="notetxt">By providing your bank information you authorize Knight Dynamic Solutions, LLC to initiate electronic debits on approximately the <strong>20th of each month</strong>.</div>
+    <div class="warn" style="margin-top:4px;">&#9733; Unpaid balances (including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /month.</div>
     <div class="irow"><label>Payment Initials:</label><input id="ii-pay-ach" class="ii" type="text" placeholder="INIT."></div>
   </div>
-  <div class="warn" style="margin-top:6px;">&#9733; Unpaid balances will incur a fee of the greater of $50 or 10% per month.</div>
 </div>
 
 <!-- TERMS & CONDITIONS -->
@@ -1060,16 +1061,18 @@ async function submitSigned(){
     var data = await resp.json();
     if(resp.ok && data.ok){
       // Solid completion screen
-      loading.style.background = 'rgba(0,0,0,.55)';
+      loading.style.background = 'rgba(0,32,91,.82)';
+      loading.style.backdropFilter = 'blur(3px)';
       loading.style.zIndex = '99999';
-      document.body.style.overflow = 'hidden'; // disable scroll behind overlay
+      document.body.style.overflow = 'hidden';
       var lbox = loading.querySelector('.sign-loading-box');
       if(lbox){
-        lbox.style.background = '#fff';
-        lbox.style.borderTop  = '6px solid #BF0D3E';
-        lbox.style.maxWidth   = '480px';
-        lbox.style.padding    = '2.5rem 2rem';
+        lbox.style.background   = '#fff';
+        lbox.style.borderTop    = '6px solid #BF0D3E';
+        lbox.style.maxWidth     = '480px';
+        lbox.style.padding      = '2.5rem 2rem';
         lbox.style.borderRadius = '8px';
+        lbox.style.boxShadow    = '0 8px 48px rgba(0,0,0,.4)';
       }
       document.getElementById('load-spinner').style.display='none';
       document.getElementById('loading-title').style.color  = '#00205B';
