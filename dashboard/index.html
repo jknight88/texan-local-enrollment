@@ -632,7 +632,7 @@ function confirmDelete(){
 var TRASH_DATA = [];
 
 function loadTrashCount(){
-  fetch('/api/getTrash?key='+encodeURIComponent(DASH_KEY))
+  fetch('/api/getDashboard?key='+encodeURIComponent(DASH_KEY)+'&action=trash')
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(Array.isArray(data)){
@@ -644,7 +644,7 @@ function loadTrashCount(){
 
 function loadTrash(){
   document.getElementById('table-wrap').innerHTML='<div class="empty">Loading trash…</div>';
-  fetch('/api/getTrash?key='+encodeURIComponent(DASH_KEY))
+  fetch('/api/getDashboard?key='+encodeURIComponent(DASH_KEY)+'&action=trash')
     .then(function(r){ return r.json(); })
     .then(function(data){
       if(!Array.isArray(data)){ document.getElementById('table-wrap').innerHTML='<div class="empty">Error loading trash.</div>'; return; }
@@ -701,7 +701,7 @@ function purgeRecord(id, bizName){
 
 function runAutoPurge(){
   if(!confirm('Purge all records past their 60-day window? This cannot be undone.')) return;
-  callApi('/api/autoPurgeTrash',{key:DASH_KEY}, function(err, data){
+  callApi('/api/getDashboard',{key:DASH_KEY, action:'autopurge'}, function(err, data){
     if(err){ alert('Purge error: '+err); return; }
     alert('Done! Purged: '+data.purged+' record(s). Kept: '+data.kept+'.');
     loadTrash();
@@ -711,9 +711,14 @@ function runAutoPurge(){
 
 // ── SHARED API HELPER ──────────────────────────────────────────────────────
 function callApi(url, payload, callback){
-  // Send key in both query string AND body to handle Azure body parsing issues
+  // Route all delete/restore/purge through getDashboard (known working endpoint)
+  if(url === '/api/deleteForm' || url === '/api/getTrash') {
+    url = '/api/getDashboard';
+  }
   var sep = url.indexOf('?') >= 0 ? '&' : '?';
-  var urlWithKey = url + sep + 'key=' + encodeURIComponent(payload.key||DASH_KEY);
+  var urlWithKey = url + sep + 'key=' + encodeURIComponent(payload.key||DASH_KEY)
+    + (payload.action ? '&action='+encodeURIComponent(payload.action) : '')
+    + (payload.id     ? '&id='+encodeURIComponent(payload.id) : '');
   fetch(urlWithKey, {
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json'},
