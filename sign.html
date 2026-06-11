@@ -662,13 +662,15 @@ function buildSummary(d){
   var termHtml = '<div style="margin-bottom:10px;">';
   termHtml += '<div style="font-size:9.5px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Selected Term Package</div>';
   termHtml += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
-  [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].forEach(function(t){
-    var isSel = termInfo ? termInfo.name===t.name : (termVal===t.val||termVal===t.val+' months');
-    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border:1.5px solid ' + (isSel?'var(--bl)':' #c8cdd8') + ';border-radius:4px;background:' + (isSel?'#edf0f7':'#f9fafc') + ';white-space:nowrap;">';
-    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+t.name+'</span>';
-    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+t.mo+'</span>';
+  var selTerm = termInfo || [{val:'6',name:'Limited',mo:'6 mo'},{val:'12',name:'Premium',mo:'12 mo'},{val:'24',name:'Elite',mo:'24 mo'}].find(function(t){ return termVal===t.val||termVal===t.val+' months'; });
+  if(selTerm){
+    termHtml += '<div style="display:flex;align-items:center;gap:5px;padding:4px 14px;border:1.5px solid var(--bl);border-radius:4px;background:#edf0f7;white-space:nowrap;">';
+    termHtml += '<span style="font-size:11px;font-weight:700;color:var(--bl);">'+selTerm.name+'</span>';
+    termHtml += '<span style="font-size:9px;color:#4a4f5e;margin-left:4px;">'+selTerm.mo+'</span>';
     termHtml += '</div>';
-  });
+  } else {
+    termHtml += '<span style="font-size:12px;font-weight:700;color:var(--bl);">'+esc(d.term||'')+'</span>';
+  }
   termHtml += '</div></div>';
 
   var zonesHtml = '';
@@ -797,15 +799,12 @@ function enterClientSigningMode(){
   // Unlock payment fields
   refreshPayFields();
 
-  // Unlock all .ii initials inputs (use only .ii to avoid double-registering)
+  // Register non-payment .ii initials (T&C, Auth, Ad Approvals — always visible)
   var iiIdx=0;
   document.querySelectorAll('.ii').forEach(function(el){
-    // Skip inputs inside the inactive payment panel
     var inCC = el.closest('#pp-cc');
     var inACH = el.closest('#pp-ach');
-    var ccOn = document.getElementById('pp-cc').classList.contains('on');
-    if(inCC && !ccOn) return;
-    if(inACH && ccOn) return;
+    if(inCC || inACH) return; // payment initials handled by refreshPayFields
     var fid='ii-'+iiIdx++;
     el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1'; el.placeholder='INIT.';
     hlField(el,false); regField(fid,el);
@@ -867,6 +866,22 @@ function refreshPayFields(){
   inactive.forEach(function(id){
     var el=document.getElementById(id); if(!el) return;
     el.disabled=true; el.style.pointerEvents='none'; el.style.opacity='0.35'; el.style.outline='none'; el.style.background='';
+  });
+  // Re-register initials for the active payment panel
+  var iiIdx2=0;
+  document.querySelectorAll('.ii').forEach(function(el){
+    var inCC = el.closest('#pp-cc');
+    var inACH = el.closest('#pp-ach');
+    if(inCC && !ccOn){ el.disabled=true; el.style.opacity='0.35'; el.style.outline='none'; el.style.background=''; return; }
+    if(inACH && ccOn){ el.disabled=true; el.style.opacity='0.35'; el.style.outline='none'; el.style.background=''; return; }
+    if(!inCC && !inACH) return; // non-payment initials handled elsewhere
+    var fid='ii-pay-init-'+iiIdx2++;
+    el.disabled=false; el.style.pointerEvents='auto'; el.style.opacity='1'; el.placeholder='INIT.';
+    // Remove old registration if any (clean up stale keys)
+    Object.keys(SIGN_FIELDS).forEach(function(k){ if(SIGN_FIELDS[k].el===el) delete SIGN_FIELDS[k]; });
+    hlField(el,!!el.value.trim()); regField(fid,el);
+    SIGN_FIELDS[fid].completed=!!el.value.trim();
+    el.addEventListener('input',function(){ markField(fid,el.value.trim().length>0); });
   });
   checkAllSigned();
 }
