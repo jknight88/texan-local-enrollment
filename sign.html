@@ -458,6 +458,7 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
       <div class="f" id="fw-cvv"><label class="lb">Security Code<span class="req">*</span></label><input id="f-cvv" type="text" maxlength="3" placeholder="CVV" id="f-cvv" oninput="enforceRange(this,4,17)"><div class="errmsg">3-4 digits</div></div>
     </div>
     <div class="warn">&#9733; A 4% service fee will be added to all credit card payments.</div>
+    <div class="warn" style="margin-top:4px;">&#9733; Unpaid balances (including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /month.</div>
     <div class="irow"><label>Payment Initials:</label><input id="ii-pay-cc" class="ii" type="text" placeholder="INIT."></div>
   </div>
   <div class="pp" id="pp-ach">
@@ -479,9 +480,9 @@ canvas.sp{display:block;touch-action:none;width:100%;height:75px;cursor:crosshai
       </div>
     </div>
     <div class="notetxt">By providing your bank information, you authorize Knight Dynamic Solutions, LLC to initiate electronic debits from your account on approximately the <strong>20th of each month</strong>.</div>
+    <div class="warn" style="margin-top:4px;">&#9733; Unpaid balances (including declined CC) to Knight Dynamic Solutions for any reason will incur a fee of the greater of $50 or 10% /month.</div>
     <div class="irow"><label>Payment Initials:</label><input id="ii-pay-ach" class="ii" type="text" placeholder="INIT."></div>
   </div>
-  <div class="warn" style="margin-top:6px;">&#9733; Unpaid balances will incur a fee of the greater of $50 or 10% per month.</div>
 </div>
 
 <!-- TERMS & CONDITIONS -->
@@ -1293,7 +1294,8 @@ async function submitSigned(){
     if(resp.ok&&data.ok){
       // Make overlay fully opaque - solid blocking completion screen
       var loadingOverlay = document.getElementById('sign-loading');
-      loadingOverlay.style.background = 'rgba(0,0,0,.55)';
+      loadingOverlay.style.background = 'rgba(0,32,91,.82)';
+      loadingOverlay.style.backdropFilter = 'blur(3px)';
       loadingOverlay.style.zIndex = '99999';
       document.body.style.overflow = 'hidden';
       var loadingBox = loadingOverlay.querySelector('.sign-loading-box');
@@ -1304,6 +1306,7 @@ async function submitSigned(){
         loadingBox.style.borderTop   = '6px solid #BF0D3E';
         loadingBox.style.background  = '#fff';
         loadingBox.style.borderRadius= '8px';
+        loadingBox.style.boxShadow   = '0 8px 48px rgba(0,0,0,.4)';
       }
       document.querySelector('.spinner').style.display='none';
       // Hide sign-banner to prevent NaN showing
