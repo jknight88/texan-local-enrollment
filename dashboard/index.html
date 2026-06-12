@@ -37,7 +37,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:#1a1a2e;m
 #login-msg.info{background:#f0f4ff;color:var(--bl);border:1px solid #c0ccff;}
 
 /* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.2rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.2rem;}
 .stat-card{background:#fff;border-radius:6px;padding:.9rem 1.1rem;box-shadow:0 2px 8px rgba(0,0,0,.07);}
 .stat-card.total{border-left:4px solid var(--bl);}
 .stat-card.pending{border-left:4px solid var(--amber);}
@@ -109,6 +109,17 @@ tbody td{padding:8px;vertical-align:middle;}
 .edit-field input,.edit-field select{width:100%;border:none;border-bottom:1.5px solid var(--br);background:transparent;font-size:13px;font-family:inherit;padding:4px 2px;outline:none;}
 .edit-field input:focus{border-bottom-color:var(--rd);}
 
+/* ── BULK BAR ── */
+.bulk-bar{display:none;align-items:center;gap:10px;padding:8px 14px;background:#fff3cd;border-bottom:1px solid #ffc107;font-size:12px;}
+.bulk-bar.active{display:flex;}
+.bulk-count{font-weight:700;color:#333;}
+.bulk-trash-btn{padding:5px 14px;background:#e53935;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.bulk-clear-btn{padding:5px 14px;background:transparent;color:#555;border:1.5px solid #ccc;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+thead th.cb-col{width:32px;text-align:center;}
+tbody td.cb-col{text-align:center;}
+input.row-cb{width:15px;height:15px;cursor:pointer;accent-color:var(--rd);}
+input#select-all-cb{width:15px;height:15px;cursor:pointer;accent-color:var(--rd);}
+
 /* ── FOOTER ── */
 .ftr{background:var(--bl);border-top:3px solid var(--rd);padding:8px 2rem;display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;}
 .ftr span{font-size:9px;color:rgba(255,255,255,.5);}
@@ -150,7 +161,7 @@ tbody td{padding:8px;vertical-align:middle;}
     <div class="stat-card pending"><div class="num" id="stat-pending">-</div><div class="lbl">Sent / Pending</div></div>
     <div class="stat-card awaiting"><div class="num" id="stat-awaiting">-</div><div class="lbl">Awaiting Rep Sig</div></div>
     <div class="stat-card signed"><div class="num" id="stat-signed">-</div><div class="lbl">Fully Signed</div></div>
-    <div class="stat-card value"><div class="num" id="stat-value">-</div><div class="lbl">Monthly Revenue</div></div>
+
   </div>
 
   <!-- TABS -->
@@ -160,6 +171,13 @@ tbody td{padding:8px;vertical-align:middle;}
     <button class="tab"        id="tab-awaiting" onclick="switchTab('awaiting')">Awaiting Rep Sig <span class="tab-count" id="tc-awaiting">0</span></button>
     <button class="tab"        id="tab-signed"  onclick="switchTab('signed')">Completed <span class="tab-count" id="tc-signed">0</span></button>
     <button class="tab"        id="tab-trash"   onclick="switchTab('trash')" style="margin-left:auto;">&#128465; Trash <span class="tab-count" id="tc-trash" style="background:#e53935;">0</span></button>
+  </div>
+
+  <!-- BULK ACTION BAR -->
+  <div class="bulk-bar" id="bulk-bar">
+    <span class="bulk-count"><span id="bulk-count-num">0</span> selected</span>
+    <button class="bulk-trash-btn" onclick="bulkTrash()">🗑 Move Selected to Trash</button>
+    <button class="bulk-clear-btn" onclick="clearSelection()">&#215; Clear Selection</button>
   </div>
 
   <!-- TABLE CARD -->
@@ -265,7 +283,7 @@ tbody td{padding:8px;vertical-align:middle;}
       <input type="hidden" id="del-is-signed">
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeModal('del-modal')" style="padding:9px 18px;border-radius:4px;border:1.5px solid var(--br);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--md);">Cancel</button>
-        <button id="del-confirm-btn" onclick="confirmDelete()" style="padding:9px 22px;border-radius:4px;border:none;background:#e53935;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">&#128465; Move to Trash</button>
+        <button id="del-confirm-btn" onclick="confirmDelete()" style="padding:9px 22px;border-radius:4px;border:none;background:#e53935;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑 Move to Trash</button>
       </div>
       <div id="del-err" style="display:none;font-size:11px;color:var(--rd);margin-top:8px;"></div>
     </div>
@@ -375,15 +393,12 @@ function renderStats(){
   var pending  = DASH_DATA.filter(function(r){ return r.status==='sent'||r.status==='opened'; }).length;
   var awaiting = DASH_DATA.filter(function(r){ return r.status==='client_signed'; }).length;
   var signed   = DASH_DATA.filter(function(r){ return r.status==='signed'; }).length;
-  var revenue  = 0;
-  DASH_DATA.filter(function(r){ return r.status==='signed'; }).forEach(function(r){
-    if(r.monthly){ var n=parseFloat(r.monthly.replace(/[^0-9.]/g,'')); if(!isNaN(n)) revenue+=n; }
-  });
+
   document.getElementById('stat-total').textContent   = total;
   document.getElementById('stat-pending').textContent  = pending;
   document.getElementById('stat-awaiting').textContent = awaiting;
   document.getElementById('stat-signed').textContent   = signed;
-  document.getElementById('stat-value').textContent    = '$'+revenue.toFixed(0)+'/mo';
+
 }
 
 function renderTabCounts(){
@@ -429,6 +444,7 @@ function renderTable(){
   }
 
   var html='<table><thead><tr>'
+    +'<th class="cb-col"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)"></th>'
     +'<th>Rep</th><th>Business</th><th>Email</th><th>Term</th>'
     +'<th>Monthly</th><th>Sent</th><th>Signed</th><th>Status</th><th>Actions</th>'
     +'</tr></thead><tbody>';
@@ -452,7 +468,8 @@ function renderTable(){
     var statusLabel = isSigned?(isIP?'In-Person':'Signed'):isAwait?'Awaiting Rep':r.status==='opened'?'Opened':'Sent';
     var statusClass = isSigned?(isIP?'inperson':'signed'):isAwait?'client_signed':(r.status==='opened'?'opened':'sent');
 
-    html+='<tr>'
+    html+='<tr data-sid="'+sid+'">'
+      +'<td class="cb-col"><input type="checkbox" class="row-cb" value="'+sid+'" data-biz="'+bname+'" onchange="onRowCheck()"></td>'
       +'<td style="text-align:center;font-weight:700;color:var(--bl);">'+(r.rep||'—')+'</td>'
       +'<td><strong>'+bname+'</strong></td>'
       +'<td style="font-size:11px;">'+esc(r.clientEmail||'—')+'</td>'
@@ -467,6 +484,62 @@ function renderTable(){
 
   html+='</tbody></table>';
   document.getElementById('table-wrap').innerHTML = html;
+}
+
+// ── BULK SELECT ────────────────────────────────────────────────────────────
+function getChecked(){
+  return Array.from(document.querySelectorAll('input.row-cb:checked'));
+}
+function onRowCheck(){
+  var checked = getChecked();
+  var num = checked.length;
+  var bar = document.getElementById('bulk-bar');
+  document.getElementById('bulk-count-num').textContent = num;
+  if(num > 0){ bar.classList.add('active'); } else { bar.classList.remove('active'); }
+  // Update select-all checkbox state
+  var all = document.querySelectorAll('input.row-cb');
+  var selAll = document.getElementById('select-all-cb');
+  if(selAll){ selAll.checked = num === all.length && all.length > 0; selAll.indeterminate = num > 0 && num < all.length; }
+}
+function toggleSelectAll(cb){
+  document.querySelectorAll('input.row-cb').forEach(function(el){ el.checked = cb.checked; });
+  onRowCheck();
+}
+function clearSelection(){
+  document.querySelectorAll('input.row-cb').forEach(function(el){ el.checked=false; });
+  var selAll = document.getElementById('select-all-cb');
+  if(selAll){ selAll.checked=false; selAll.indeterminate=false; }
+  document.getElementById('bulk-bar').classList.remove('active');
+}
+function bulkTrash(){
+  var checked = getChecked();
+  if(!checked.length) return;
+  var names = checked.map(function(el){ return el.getAttribute('data-biz')||el.value; }).join(', ');
+  if(!confirm('Move '+checked.length+' record(s) to Trash?\n\n'+names)) return;
+
+  var ids = checked.map(function(el){ return el.value; });
+  var done=0, errors=0;
+  var total = ids.length;
+
+  // Show progress on bulk button
+  var btn = document.querySelector('.bulk-trash-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Trashing (0/'+total+')…'; }
+
+  function next(i){
+    if(i >= total){
+      if(btn){ btn.disabled=false; btn.textContent='🗑 Move Selected to Trash'; }
+      clearSelection();
+      loadData();
+      if(errors > 0) alert(done+' moved to trash. '+errors+' failed.');
+      return;
+    }
+    callApi('/api/getDashboard',{key:DASH_KEY, action:'soft', id:ids[i]}, function(err){
+      if(err){ errors++; } else { done++; }
+      if(btn) btn.textContent='Trashing ('+done+'/'+total+')…';
+      next(i+1);
+    });
+  }
+  next(0);
 }
 
 function handleBtn(el){
@@ -620,7 +693,7 @@ function confirmDelete(){
   var delBtn=document.getElementById('del-confirm-btn');
   if(delBtn){ delBtn.disabled=true; delBtn.textContent='Moving to Trash…'; }
   callApi('/api/deleteForm',{id:id, key:DASH_KEY, action:'soft'}, function(err,data){
-    if(delBtn){ delBtn.disabled=false; delBtn.textContent='&#128465; Move to Trash'; }
+    if(delBtn){ delBtn.disabled=false; delBtn.textContent='🗑 Move to Trash'; }
     if(err){ document.getElementById('del-err').textContent=err; document.getElementById('del-err').style.display='block'; return; }
     closeModal('del-modal');
     loadData();
