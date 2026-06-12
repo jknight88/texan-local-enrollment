@@ -446,7 +446,7 @@ function renderTable(){
   var html='<table><thead><tr>'
     +'<th class="cb-col"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)"></th>'
     +'<th>Rep</th><th>Business</th><th>Email</th><th>Term</th>'
-    +'<th>Monthly</th><th>Sent</th><th>Signed</th><th>Status</th><th>Actions</th>'
+    +'<th>Monthly</th><th>Sent</th><th>Opened</th><th>Signed</th><th>Status</th><th>Actions</th>'
     +'</tr></thead><tbody>';
 
   rows.forEach(function(r){
@@ -476,6 +476,7 @@ function renderTable(){
       +'<td style="font-size:11px;">'+(r.term||'—')+'</td>'
       +'<td style="font-weight:700;">'+(r.monthly||'—')+'</td>'
       +'<td style="white-space:nowrap;font-size:11px;">'+fmtDate(r.createdAt)+'</td>'
+      +'<td style="white-space:nowrap;font-size:11px;color:'+(r.openedAt?'"#e65100"':'"#aaa"')+';">'+(r.openedAt?fmtDate(r.openedAt):'—')+'</td>'
       +'<td style="white-space:nowrap;font-size:11px;">'+(isSigned?'<span '+auditTip+' style="color:var(--green);cursor:help;">&#10003; '+fmtDate(r.signedAt)+'</span>':'<span style="color:#aaa;">—</span>')+'</td>'
       +'<td><span class="badge '+statusClass+'">'+statusLabel+'</span></td>'
       +'<td>'+actions+'</td>'
@@ -650,7 +651,7 @@ function editForm(sessionId){
   });
   var container=document.getElementById('edit-zones-container');
   container.innerHTML='';
-  if(fd.zones&&fd.zones.length>0){ fd.zones.forEach(function(z){ addEditZone(z.id,null,z.rate); }); }
+  if(fd.zones&&fd.zones.length>0){ fd.zones.forEach(function(z){ addEditZone(z.zoneName||z.id||'',z.product||null,z.rate||''); }); }
   else { addEditZone(); }
   document.getElementById('edit-err').style.display='none';
   document.getElementById('edit-modal').style.display='flex';
@@ -670,7 +671,7 @@ function saveEdit(){
     if(zid||rate) zones.push({id:zid,product:prod,rate:rate});
   });
   var formData={bizName:bizName,addr:document.getElementById('edit-addr').value.trim(),city:document.getElementById('edit-city').value.trim(),state:document.getElementById('edit-state').value.trim(),zip:document.getElementById('edit-zip').value.trim(),phone:document.getElementById('edit-phone').value.trim(),clientEmail:document.getElementById('edit-email').value.trim(),contact:document.getElementById('edit-contact').value.trim(),notes:document.getElementById('edit-notes').value.trim(),term:termVal,zones:zones};
-  fetch('/api/updateForm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,formData:formData})})
+  fetch('/api/getDashboard?key='+encodeURIComponent(DASH_KEY)+'&action=update&id='+encodeURIComponent(id),{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({id:id,key:DASH_KEY,action:'update',formData:formData})})
     .then(function(r){ return r.text().then(function(t){ return {status:r.status,text:t}; }); })
     .then(function(result){
       var data; try{ data=JSON.parse(result.text); }catch(e){ data={error:'Server error'}; }
