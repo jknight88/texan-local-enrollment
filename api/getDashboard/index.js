@@ -89,6 +89,35 @@ module.exports = async function(context, req) {
     return;
   }
 
+  // ── UPDATE FORM ───────────────────────────────────────────────────────────
+  if (action === "update") {
+    let formData = body.formData || {};
+    if (typeof formData === "string") { try { formData = JSON.parse(formData); } catch(e) { formData = {}; } }
+    if (!id || !Object.keys(formData).length) {
+      context.res = { status:400, headers:{"Content-Type":"application/json"}, body: JSON.stringify({error:"Missing id or formData"}) };
+      return;
+    }
+    try {
+      const blob   = activeContainer.getBlockBlobClient(`${id}.json`);
+      const dl     = await blob.downloadToBuffer();
+      const record = JSON.parse(dl.toString());
+      record.formData  = Object.assign({}, record.formData, formData);
+      record.bizName   = formData.bizName || record.bizName;
+      record.clientEmail = formData.clientEmail || record.clientEmail;
+      record.updatedAt = new Date().toISOString();
+      const updated = JSON.stringify(record);
+      await blob.upload(updated, Buffer.byteLength(updated), {
+        overwrite: true,
+        blobHTTPHeaders: { blobContentType: "application/json" }
+      });
+      context.res = { status:200, headers:{"Content-Type":"application/json"}, body: JSON.stringify({ok:true}) };
+    } catch(err) {
+      context.log.error("update error:", err.message);
+      context.res = { status:500, headers:{"Content-Type":"application/json"}, body: JSON.stringify({error:err.message}) };
+    }
+    return;
+  }
+
   // ── AUTO PURGE EXPIRED ────────────────────────────────────────────────
   if (action === "autopurge") {
     try {
@@ -150,12 +179,12 @@ module.exports = async function(context, req) {
         results.push({
           sessionId:record.sessionId, bizName:record.bizName, clientEmail:record.clientEmail,
           status:record.status, signingMethod:record.signingMethod||'remote',
-          createdAt:record.createdAt, openedAt:record.openedAt, lastOpenedAt:record.lastOpenedAt,
+          createdAt:record.createdAt, openedAt:record.openedAt||record.lastOpenedAt||'', lastOpenedAt:record.lastOpenedAt||'',
           openCount:record.openCount||0, verifiedAt:record.verifiedAt, signedAt:record.signedAt,
           consentAt:record.signed&&record.signed.consentAt, ipAddress:record.signed&&record.signed.ipAddress,
           auditHash:record.auditHash, verified:record.verified||false,
           term:record.formData&&record.formData.term, rep:record.formData&&record.formData.rep,
-          monthly:record.signed&&record.signed.monthly,
+          monthly:(record.signed&&record.signed.monthly)||(record.formData&&record.formData.monthly)||'',
           formData:record.formData, signed:record.signed, auditTrail:record.auditTrail
         });
       } catch(e) { context.log.warn("skip blob:", blob.name, e.message); }
